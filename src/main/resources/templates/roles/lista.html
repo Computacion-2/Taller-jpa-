@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Roles')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('ROLES_GESTIONAR')">
+    <div class="module-heading">
+        <div class="module-intro"><p class="page-kicker">02 / ACCESOS</p><h1>Roles<span aria-hidden="true">.</span></h1><p class="muted">Un lugar para cada responsabilidad. Agrupa permisos y define hasta dónde llega cada acceso.</p></div>
+        <div class="module-metric"><strong class="metric-value" th:text="${#lists.size(roles)}">0</strong><span class="metric-label">roles en la aplicación</span></div>
+    </div>
+    <div class="module-toolbar"><p class="table-caption">EL MAPA DE RESPONSABILIDADES</p><a class="button" th:href="@{/roles/nuevo}">Crear rol <span aria-hidden="true">↗</span></a></div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <section class="card table-card" aria-label="Roles registrados">
+        <div class="table-heading"><h2>Roles registrados</h2><span class="table-caption" th:text="${#lists.size(roles)} + ' en total'"></span></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(roles)}"><h3>Aún no hay roles</h3><p>Crea un rol y asígnale al menos un permiso.</p></div>
+        <div class="table-scroll" th:unless="${#lists.isEmpty(roles)}"><table><thead><tr><th>Rol</th><th>Permisos</th><th>Estado</th><th class="actions-column">Acciones</th></tr></thead><tbody>
+        <tr th:each="rol : ${roles}">
+            <td><strong th:text="${rol.nombre()}"></strong><span class="cell-secondary" th:text="${rol.descripcion()}"></span></td>
+            <td class="permissions-cell"><span class="tag" th:each="permiso : ${permisos}" th:if="${rol.permisoIds().contains(permiso.id())}" th:text="${permiso.nombre()}"></span></td>
+            <td><span class="badge" th:classappend="${rol.estado().name() == 'ACTIVO' ? 'badge-active' : 'badge-inactive'}" th:text="${rol.estado().name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"></span></td>
+            <td><div class="row-actions"><a class="text-link" th:href="@{/roles/{id}/editar(id=${rol.id()})}" th:attr="aria-label=|Editar rol ${rol.nombre()}|">Editar</a><details class="delete-confirm"><summary>Eliminar</summary><div><p th:text="|¿Eliminar el rol ${rol.nombre()}? Primero debe retirarse de todos sus usuarios.|"></p><form method="post" th:action="@{/roles/{id}/eliminar(id=${rol.id()})}"><button class="button button-danger button-small" type="submit">Confirmar eliminación</button></form></div></details></div></td>
+        </tr>
+        </tbody></table></div>
+    </section>
+    <p class="note">Un rol debe conservar al menos un permiso. Para eliminarlo, primero retíralo de todos sus usuarios.</p>
+    <p class="note">Los roles base ADMINISTRADOR y USUARIO conservan su nombre y estado activo; puedes actualizar su descripción y permisos.</p>
+</main>
+</body></html>

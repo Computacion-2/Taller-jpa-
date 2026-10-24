@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${creacion ? 'Crear rol' : 'Editar rol'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page page-form" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('ROLES_GESTIONAR')">
+    <a class="back-link" th:href="@{/roles}">← Volver a roles</a>
+    <div class="page-heading"><div><p class="page-kicker">02 / ACCESOS</p><h1 th:text="${creacion ? 'Crear rol' : 'Editar rol'}"></h1><p class="muted">Dale nombre a una responsabilidad y reúne las acciones que necesita.</p></div></div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <form class="stack" method="post" th:object="${rol}" th:action="${creacion} ? @{/roles} : @{/roles/{id}(id=${rolId})}">
+        <div class="alert alert-error" role="alert" th:if="${#fields.hasAnyErrors()}">Hay datos por corregir. Revisa los campos señalados antes de guardar.</div>
+        <p class="alert alert-info" th:if="${rolBase == true}">Este rol base conserva su nombre y estado activo. Puedes actualizar su descripción y permisos.</p>
+        <section class="card stack"><div class="form-section-title"><span class="form-section-number" aria-hidden="true">01</span><h2>Datos del rol</h2></div>
+            <div class="grid grid-2"><div class="form-group"><label for="nombre">Nombre <span class="required-hint">obligatorio</span></label><input id="nombre" th:field="*{nombre}" required maxlength="50" placeholder="Ej. COORDINADOR" th:errorclass="input-error"><p class="field-error" th:errors="*{nombre}"></p></div>
+            <div class="form-group"><label for="estado">Estado</label><select id="estado" th:field="*{estado}" required th:errorclass="input-error"><option th:each="opcion : ${estados}" th:value="${opcion}" th:text="${opcion.name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"></option></select><p class="field-error" th:errors="*{estado}"></p></div></div>
+            <div class="form-group"><label for="descripcion">Descripción <span class="required-hint">opcional</span></label><textarea id="descripcion" th:field="*{descripcion}" maxlength="200" rows="3" placeholder="Describe para qué sirve este rol" th:errorclass="input-error"></textarea><p class="field-error" th:errors="*{descripcion}"></p></div>
+        </section>
+        <section class="card stack"><fieldset><legend class="form-section-title"><span class="form-section-number" aria-hidden="true">02</span> Permisos del rol</legend><p class="muted">Marca los permisos que debe conservar. Desmarca uno para retirarlo; debe quedar al menos uno.</p><div class="choice-grid"><label class="choice" th:each="permiso : ${permisos}"><input type="checkbox" th:field="*{permisoIds}" th:value="${permiso.id()}"><span><strong th:text="${permiso.nombre()}"></strong><small th:text="${permiso.descripcion()}"></small><small th:if="${permiso.estado().name() == 'INACTIVO'}">Permiso inactivo</small></span></label></div><p class="field-error" th:errors="*{permisoIds}"></p><p class="empty-state" th:if="${#lists.isEmpty(permisos)}">Primero crea un permiso para poder asignarlo.</p></fieldset></section>
+        <div class="form-actions"><a class="button button-secondary" th:href="@{/roles}">Cancelar</a><button class="button" type="submit" th:text="${creacion ? 'Crear rol' : 'Guardar cambios'}">Guardar</button></div>
+    </form>
+</main>
+</body></html>

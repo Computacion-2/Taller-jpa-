@@ -6,6 +6,7 @@ import edu.co.icesi.finanzas.dto.Views;
 import edu.co.icesi.finanzas.entity.Permiso;
 import edu.co.icesi.finanzas.entity.Rol;
 import edu.co.icesi.finanzas.entity.RolPermiso;
+import edu.co.icesi.finanzas.entity.enums.Estado;
 import edu.co.icesi.finanzas.entity.keys.RolPermisoId;
 import edu.co.icesi.finanzas.repo.PermisoRepository;
 import edu.co.icesi.finanzas.repo.RolPermisoRepository;
@@ -76,6 +77,9 @@ public class RolServiceImpl implements RolService {
     public RolView actualizar(Long id, RolRequest request) {
         Rol rol = roles.findLockedById(id).orElseThrow(() -> missing("Rol"));
         String nombre = normalizarNombre(request.nombre());
+        if (esRolBase(rol) && (!rol.getNombre().equals(nombre) || request.estado() != Estado.ACTIVO)) {
+            throw conflict("Los roles base deben conservar su nombre y permanecer activos");
+        }
         if (roles.existsByNombreIgnoreCaseAndIdNot(nombre, id)) {
             throw conflict("Nombre de rol duplicado");
         }
@@ -115,10 +119,17 @@ public class RolServiceImpl implements RolService {
     @Transactional
     public void eliminar(Long id) {
         Rol rol = roles.findLockedById(id).orElseThrow(() -> missing("Rol"));
+        if (esRolBase(rol)) {
+            throw conflict("No se pueden eliminar los roles base");
+        }
         if (usuarioRoles.existsByRol_Id(id)) {
             throw conflict("Retire el rol de sus usuarios antes de eliminarlo");
         }
         roles.delete(rol);
+    }
+
+    private boolean esRolBase(Rol rol) {
+        return "ADMINISTRADOR".equalsIgnoreCase(rol.getNombre()) || "USUARIO".equalsIgnoreCase(rol.getNombre());
     }
 
     private void agregarPermisos(Rol rol, Set<Long> permisoIds) {

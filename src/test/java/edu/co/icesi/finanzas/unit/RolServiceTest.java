@@ -148,6 +148,46 @@ class RolServiceTest {
         verify(roles, never()).delete(any());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMINISTRADOR", "USUARIO"})
+    void protegeRolesBaseContraCambioDeNombreEstadoYEliminacion(String nombre) {
+        Rol base = Fixtures.rol(1L);
+        base.setNombre(nombre);
+        when(roles.findLockedById(1L)).thenReturn(Optional.of(base));
+
+        assertThrows(BusinessException.class, () -> service.actualizar(1L,
+                new RolRequest("RENOMBRADO", "", Estado.ACTIVO, Set.of(1L))));
+        assertThrows(BusinessException.class, () -> service.actualizar(1L,
+                new RolRequest(nombre, "", Estado.INACTIVO, Set.of(1L))));
+        assertThrows(BusinessException.class, () -> service.eliminar(1L));
+
+        assertEquals(nombre, base.getNombre());
+        assertEquals(Estado.ACTIVO, base.getEstado());
+        verify(roles, never()).save(any());
+        verify(roles, never()).delete(any());
+        verifyNoInteractions(usuarioRoles, permisos);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMINISTRADOR", "USUARIO"})
+    void permiteActualizarDescripcionYPermisosDeRolesBase(String nombre) {
+        Rol base = Fixtures.rol(1L);
+        base.setNombre(nombre);
+        Permiso permiso = base.getPermisos().get(0).getPermiso();
+        when(roles.findLockedById(1L)).thenReturn(Optional.of(base));
+        when(permisos.findAllById(Set.of(1L))).thenReturn(List.of(permiso));
+        when(roles.save(any(Rol.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        RolView actualizado = service.actualizar(1L,
+                new RolRequest(nombre, " Descripción actualizada ", Estado.ACTIVO, Set.of(1L)));
+
+        assertEquals(nombre, actualizado.nombre());
+        assertEquals(Estado.ACTIVO, actualizado.estado());
+        assertEquals("Descripción actualizada", actualizado.descripcion());
+        assertEquals(Set.of(1L), actualizado.permisoIds());
+        verify(roles).save(base);
+    }
+
     @Test
     void faltanPermisosYRoles() {
         when(roles.findById(11L)).thenReturn(Optional.empty());
