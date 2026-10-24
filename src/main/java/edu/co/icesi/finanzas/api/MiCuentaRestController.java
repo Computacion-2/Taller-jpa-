@@ -1,4 +1,4 @@
-package edu.co.icesi.finanzas.controller;
+package edu.co.icesi.finanzas.api;
 
 import edu.co.icesi.finanzas.dto.CambioPassword;
 import edu.co.icesi.finanzas.dto.RegistroRequest;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class MiCuentaController {
+public class MiCuentaRestController {
     private final UsuarioService service;
 
     @PostMapping("/registro")

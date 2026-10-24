@@ -2,11 +2,15 @@
   <modelVersion>4.0.0</modelVersion>
   <parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>3.5.11</version><relativePath/></parent>
   <groupId>edu.co.icesi</groupId><artifactId>finanzas-personales</artifactId><version>1.0.0</version>
+  <packaging>war</packaging>
   <name>Finanzas personales - DiddyParty</name>
-  <description>Taller JPA de Computacion en Internet II</description>
+  <description>Talleres JPA y MVC de Computacion en Internet II</description>
   <properties><java.version>17</java.version></properties>
   <dependencies>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-thymeleaf</artifactId></dependency>
+    <dependency><groupId>org.thymeleaf.extras</groupId><artifactId>thymeleaf-extras-springsecurity6</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-tomcat</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-validation</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
@@ -37,6 +41,7 @@
           <configuration>
             <includes>
               <include>edu/co/icesi/finanzas/service/impl/*</include>
+              <include>edu/co/icesi/finanzas/security/AutenticacionService*</include>
             </includes>
             <rules>
               <rule>

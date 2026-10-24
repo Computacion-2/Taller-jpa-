@@ -1,4 +1,4 @@
-package edu.co.icesi.finanzas.controller;
+package edu.co.icesi.finanzas.api;
 import edu.co.icesi.finanzas.dto.*;
 import edu.co.icesi.finanzas.service.PermisoService;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController @RequestMapping("/api/admin/permisos") @RequiredArgsConstructor
-public class PermisoController {
+public class PermisoRestController {
     private final PermisoService service;
     @GetMapping public List<PermisoView> listar() { return service.listar(); }
     @GetMapping("/{id}") public PermisoView obtener(@PathVariable Long id) { return service.obtener(id); }

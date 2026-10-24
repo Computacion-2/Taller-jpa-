@@ -1,4 +1,4 @@
-package edu.co.icesi.finanzas.controller;
+package edu.co.icesi.finanzas.api;
 
 import edu.co.icesi.finanzas.dto.*;
 import edu.co.icesi.finanzas.entity.enums.Estado;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/usuarios")
 @RequiredArgsConstructor
-public class UsuarioController {
+public class UsuarioRestController {
     private final UsuarioService service;
 
     @GetMapping

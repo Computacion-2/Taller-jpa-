@@ -1,4 +1,4 @@
-package edu.co.icesi.finanzas.controller;
+package edu.co.icesi.finanzas.api;
 
 import edu.co.icesi.finanzas.dto.RolRequest;
 import edu.co.icesi.finanzas.dto.RolView;
@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/roles")
 @RequiredArgsConstructor
-public class RolController {
+public class RolRestController {
     private final RolService service;
 
     @GetMapping
