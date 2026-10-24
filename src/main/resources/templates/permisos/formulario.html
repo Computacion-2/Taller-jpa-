@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${creacion ? 'Crear permiso' : 'Editar permiso'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page page-form" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('PERMISOS_GESTIONAR')">
+    <a class="back-link" th:href="@{/permisos}">← Volver a permisos</a>
+    <div class="page-heading"><div><p class="page-kicker">03 / ACCIONES</p><h1 th:text="${creacion ? 'Crear permiso' : 'Editar permiso'}"></h1><p class="muted">Una acción bien definida hace más claro cada acceso.</p></div></div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <form class="stack" method="post" th:object="${permiso}" th:action="${creacion} ? @{/permisos} : @{/permisos/{id}(id=${permisoId})}">
+        <div class="alert alert-error" role="alert" th:if="${#fields.hasAnyErrors()}">Hay datos por corregir. Revisa los campos señalados antes de guardar.</div>
+        <section class="card stack"><div class="form-section-title"><span class="form-section-number" aria-hidden="true">01</span><h2>Datos del permiso</h2></div>
+            <div class="form-group"><label for="nombre">Nombre <span class="required-hint">obligatorio</span></label><input id="nombre" th:field="*{nombre}" required maxlength="100" placeholder="Ej. REPORTES_CONSULTAR" th:errorclass="input-error"><p class="field-error" th:errors="*{nombre}"></p></div>
+            <div class="form-group"><label for="descripcion">Descripción <span class="required-hint">opcional</span></label><textarea id="descripcion" th:field="*{descripcion}" maxlength="250" rows="3" placeholder="Describe qué acción permite" th:errorclass="input-error"></textarea><p class="field-error" th:errors="*{descripcion}"></p></div>
+            <div class="form-group"><label for="estado">Estado</label><select id="estado" th:field="*{estado}" required th:errorclass="input-error"><option th:each="opcion : ${estados}" th:value="${opcion}" th:text="${opcion.name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"></option></select><p class="field-error" th:errors="*{estado}"></p></div>
+        </section>
+        <div class="form-actions"><a class="button button-secondary" th:href="@{/permisos}">Cancelar</a><button class="button" type="submit" th:text="${creacion ? 'Crear permiso' : 'Guardar cambios'}">Guardar</button></div>
+    </form>
+</main>
+</body></html>

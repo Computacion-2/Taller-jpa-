@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Permisos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('PERMISOS_GESTIONAR')">
+    <div class="module-heading">
+        <div class="module-intro"><p class="page-kicker">03 / ACCIONES</p><h1>Permisos<span aria-hidden="true">.</span></h1><p class="muted">Cada acción tiene su alcance. Organiza las autorizaciones que componen los roles de tu comunidad.</p></div>
+        <div class="module-metric"><strong class="metric-value" th:text="${#lists.size(permisos)}">0</strong><span class="metric-label">permisos disponibles</span></div>
+    </div>
+    <div class="module-toolbar"><p class="table-caption">LAS PIEZAS DE CADA ACCESO</p><a class="button" th:href="@{/permisos/nuevo}">Crear permiso <span aria-hidden="true">↗</span></a></div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <section class="card table-card" aria-label="Permisos registrados">
+        <div class="table-heading"><h2>Permisos registrados</h2><span class="table-caption" th:text="${#lists.size(permisos)} + ' en total'"></span></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(permisos)}"><h3>Aún no hay permisos</h3><p>Crea un permiso para poder asignarlo a un rol.</p></div>
+        <div class="table-scroll" th:unless="${#lists.isEmpty(permisos)}"><table><thead><tr><th>Permiso</th><th>Descripción</th><th>Estado</th><th class="actions-column">Acciones</th></tr></thead><tbody>
+        <tr th:each="permiso : ${permisos}">
+            <td><strong><span th:text="${permiso.nombre()}"></span></strong></td><td class="description-cell" th:text="${permiso.descripcion()}"></td>
+            <td><span class="badge" th:classappend="${permiso.estado().name() == 'ACTIVO' ? 'badge-active' : 'badge-inactive'}" th:text="${permiso.estado().name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"></span></td>
+            <td><div class="row-actions"><a class="text-link" th:href="@{/permisos/{id}/editar(id=${permiso.id()})}" th:attr="aria-label=|Editar permiso ${permiso.nombre()}|">Editar</a><details class="delete-confirm"><summary>Eliminar</summary><div><p th:text="|¿Eliminar el permiso ${permiso.nombre()}? Primero debe retirarse de todos sus roles.|"></p><form method="post" th:action="@{/permisos/{id}/eliminar(id=${permiso.id()})}"><button class="button button-danger button-small" type="submit">Confirmar eliminación</button></form></div></details></div></td>
+        </tr>
+        </tbody></table></div>
+    </section>
+    <p class="note">Al editar un rol puedes asignarle permisos y retirarlos.</p>
+</main>
+</body></html>
