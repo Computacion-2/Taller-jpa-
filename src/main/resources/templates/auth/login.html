@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Iniciar sesión')}"></head>
+<body class="auth-page">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="auth-shell">
+    <section th:replace="~{auth/poster :: poster('Tu dinero tiene planes.', 'Un poco de orden hoy. Más espacio para lo que viene.')}"></section>
+    <section class="auth-card stack" aria-labelledby="login-titulo">
+        <div class="auth-form-heading">
+            <p class="auth-kicker">De vuelta por aquí</p>
+            <h2 id="login-titulo">Iniciar sesión</h2>
+            <p class="muted">Entra a tu espacio con tu correo y contraseña.</p>
+        </div>
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <p class="alert alert-error" role="alert" th:if="${param.error}">Correo o contraseña incorrectos, o cuenta inactiva.</p>
+        <p class="alert alert-success" role="status" th:if="${param.logout}">Cerraste sesión correctamente.</p>
+        <p class="alert alert-error" role="alert" th:if="${param.sesion}">Tu cuenta dejó de estar disponible. Inicia sesión nuevamente.</p>
+        <form th:action="@{/login}" method="post" class="stack">
+            <div class="form-group">
+                <label for="username">Correo</label>
+                <input id="username" name="username" type="email" placeholder="tu.correo@u.icesi.edu.co" autocomplete="username" maxlength="150" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <button class="button" type="submit">Entrar <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="auth-footer">¿Primera vez por aquí? <a th:href="@{/registro}">Crea tu cuenta</a>.</p>
+    </section>
+</main>
+</body>
+</html>

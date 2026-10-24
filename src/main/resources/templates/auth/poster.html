@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="poster(titulo, descripcion)" class="auth-copy">
+    <p class="auth-kicker">Finanzas personales · Icesi</p>
+    <h1 th:text="${titulo}">Tu dinero tiene planes.</h1>
+    <p class="muted" th:text="${descripcion}">Un poco de orden hoy. Más espacio para lo que viene.</p>
+
+    <svg class="my-8 block w-full max-w-[420px]" viewBox="0 0 440 275" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <circle cx="328" cy="155" r="87" fill="#DDEA90"/>
+        <path d="M58 189V92C58 54.4 88.4 24 126 24C163.6 24 194 54.4 194 92V189H58Z" fill="#ED7653" transform="rotate(-12 126 106)"/>
+        <rect x="171" y="72" width="180" height="128" rx="4" fill="#F5F3ED" stroke="#202A3B" stroke-width="2" transform="rotate(12 171 72)"/>
+        <path d="M207 112L275 126M203 131L250 141" stroke="#202A3B" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="283" cy="182" r="25" fill="#345DDE"/>
+        <path d="M273 190L290 175M278 173L292 174L291 188" stroke="#F5F3ED" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M39 226C77 209 115 246 155 231C179 222 184 202 169 195C149 185 129 215 150 235C165 249 200 257 237 246" stroke="#202A3B" stroke-width="2" stroke-linecap="round"/>
+        <path d="M369 44V66M358 55H380" stroke="#202A3B" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="51" cy="71" r="5" fill="#345DDE"/>
+    </svg>
+
+    <p class="auth-kicker">Cada decisión cuenta. También la de empezar.</p>
+</section>
+</body>
+</html>

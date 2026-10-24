@@ -6,7 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "edu.co.icesi.finanzas.api")
 public class ApiExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     ResponseEntity<ProblemDetail> business(BusinessException ex) { return problem(ex.getStatus(), ex.getMessage()); }

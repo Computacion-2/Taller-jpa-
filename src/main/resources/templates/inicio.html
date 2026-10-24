@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page stack">
+    <div class="welcome-heading">
+        <div class="welcome-copy"><p class="page-kicker">FINANZAS PERSONALES / ICESI</p><h1>Tu espacio,<br><em>en orden.</em></h1><p class="muted">Todo empieza por una comunidad bien organizada. Cada persona, su rol. Cada acceso, un propósito.</p></div>
+        <div class="welcome-mark" aria-hidden="true"><svg viewBox="0 0 210 200" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M44 39h120v143H44z" fill="#ddea90"/><path d="M30 24h120v143H30z" fill="#f5f3ed" stroke="#17233b" stroke-width="1.5"/><path d="M52 65h74M52 84h74M52 103h40M52 140h74" stroke="#17233b" stroke-width="1.5"/><circle cx="153" cy="58" r="31" fill="#ed7653"/><path d="m139 58 10 10 18-20" stroke="#17233b" stroke-width="2"/><path d="m174 135 17 17m0-17-17 17" stroke="#345dde" stroke-width="2"/><circle cx="35" cy="184" r="4" fill="#345dde"/></svg></div>
+    </div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <div class="module-toolbar"><p class="table-caption">TU PUNTO DE PARTIDA</p><span class="table-caption">PERSONAS → ACCESOS → ACCIONES</span></div>
+    <div class="access-grid">
+        <a class="access-card access-card-coral" th:href="@{/usuarios}" sec:authorize="hasAnyAuthority('ROLE_ADMINISTRADOR', 'USUARIOS_GESTIONAR')"><div class="flex items-center justify-between"><span class="access-number">01</span><span class="access-arrow" aria-hidden="true">↗</span></div><h2>Usuarios</h2><p>Conoce a tu comunidad y dale a cada persona el acceso justo.</p><span class="table-caption">GESTIONAR PERSONAS</span></a>
+        <a class="access-card access-card-blue" th:href="@{/roles}" sec:authorize="hasAnyAuthority('ROLE_ADMINISTRADOR', 'ROLES_GESTIONAR')"><div class="flex items-center justify-between"><span class="access-number">02</span><span class="access-arrow" aria-hidden="true">↗</span></div><h2>Roles</h2><p>Reúne los permisos que necesita cada responsabilidad.</p><span class="table-caption">ORGANIZAR ACCESOS</span></a>
+        <a class="access-card access-card-lime" th:href="@{/permisos}" sec:authorize="hasAnyAuthority('ROLE_ADMINISTRADOR', 'PERMISOS_GESTIONAR')"><div class="flex items-center justify-between"><span class="access-number">03</span><span class="access-arrow" aria-hidden="true">↗</span></div><h2>Permisos</h2><p>Define las acciones que hacen posible cada rol.</p><span class="table-caption">DEFINIR ACCIONES</span></a>
+    </div>
+    <div class="session-note"><span class="section-number" aria-hidden="true">i</span><div><p>Este es tu espacio, <strong sec:authentication="name"></strong>.</p><p class="muted">Verás los módulos habilitados para tu cuenta. Si necesitas otro acceso, solicítalo al administrador.</p></div></div>
+</main>
+</body>
+</html>

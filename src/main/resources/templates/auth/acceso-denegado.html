@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Acceso denegado')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page error-scene">
+    <div class="error-code" aria-hidden="true">403<span class="text-[#ed7653]">.</span></div>
+    <section class="error-copy stack">
+        <div>
+            <p class="auth-kicker">Un acceso que necesita permiso</p>
+            <h1>Acceso denegado</h1>
+        </div>
+        <p class="muted">Tu cuenta no tiene autorización para realizar esta operación. Si necesitas entrar a este módulo, solicítalo al administrador.</p>
+        <a class="button self-start" th:href="@{/}">Volver al inicio <span aria-hidden="true">↗</span></a>
+    </section>
+</main>
+</body>
+</html>

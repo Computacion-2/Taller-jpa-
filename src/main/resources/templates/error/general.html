@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('No se pudo completar la solicitud')}"></head>
+<body><header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page error-scene">
+    <div class="error-code" aria-hidden="true"><span th:text="${codigo}">!</span><span class="text-[#ed7653]">.</span></div>
+    <section class="error-copy stack">
+        <div>
+            <p class="auth-kicker" th:text="|Error ${codigo}|">Solicitud no disponible</p>
+            <h1>No se pudo completar la solicitud</h1>
+        </div>
+        <p class="muted" th:text="${mensaje}">Revisa la información e inténtalo nuevamente.</p>
+        <a class="button self-start" th:href="@{/}">Volver al inicio <span aria-hidden="true">↗</span></a>
+    </section>
+</main>
+</body></html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#202c3d">
+    <meta name="description" content="miga. · Tu espacio de finanzas personales. Universidad Icesi.">
+    <title th:text="${titulo} + ' · miga. | Finanzas personales'">miga. · Finanzas personales</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<th:block th:fragment="header">
+    <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-lime focus:px-5 focus:py-3" href="#contenido">Saltar al contenido</a>
+    <header class="site-header" th:classappend="${#authorization.expression('isAnonymous()') ? 'public-header' : ''}">
+        <div class="header-inner">
+            <div><a class="brand" th:href="@{/}" aria-label="miga. · Finanzas personales · Inicio"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-word">miga.</span></a><p class="brand-caption">FINANZAS PERSONALES · ICESI</p></div>
+            <p class="sidebar-label" sec:authorize="isAuthenticated()">Tu espacio de gestión</p>
+            <nav class="main-nav" aria-label="Navegación principal" sec:authorize="isAuthenticated()">
+                <a th:href="@{/}" th:attr="aria-current=${rutaActual == '/' ? 'page' : null}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span><span class="nav-index">00</span></a>
+                <a th:href="@{/usuarios}" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('USUARIOS_GESTIONAR')" th:attr="aria-current=${rutaActual != null and #strings.startsWith(rutaActual, '/usuarios') ? 'page' : null}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></svg><span>Usuarios</span><span class="nav-index">01</span></a>
+                <a th:href="@{/roles}" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('ROLES_GESTIONAR')" th:attr="aria-current=${rutaActual != null and #strings.startsWith(rutaActual, '/roles') ? 'page' : null}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m12 3 8 4v6c0 4-8 8-8 8s-8-4-8-8V7zM8 12l3 3 5-6"/></svg><span>Roles</span><span class="nav-index">02</span></a>
+                <a th:href="@{/permisos}" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('PERMISOS_GESTIONAR')" th:attr="aria-current=${rutaActual != null and #strings.startsWith(rutaActual, '/permisos') ? 'page' : null}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="5"/><path d="m13 13 8 8m-3-3 3-3m-6 0 3-3M7 9h4"/></svg><span>Permisos</span><span class="nav-index">03</span></a>
+            </nav>
+            <div class="sidebar-note" sec:authorize="isAuthenticated()"><svg aria-hidden="true" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 4v40M4 24h40M10 10l28 28M10 38l28-28"/><circle cx="24" cy="24" r="12"/></svg><p>Un poco de orden.<br>Un montón de posibilidades.</p><span>HECHO PARA TU DÍA A DÍA</span></div>
+            <div class="session" sec:authorize="isAuthenticated()"><span class="session-avatar" aria-hidden="true">M</span><div class="session-info"><strong>Tu cuenta</strong><span class="session-user" sec:authentication="name">correo@u.icesi.edu.co</span></div><form method="post" th:action="@{/logout}"><button type="submit" aria-label="Salir" title="Cerrar sesión"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4H4v16h6m4-12 4 4-4 4m-6-4h12"/></svg></button></form></div>
+            <nav class="main-nav" aria-label="Acceso" sec:authorize="isAnonymous()"><a th:href="@{/login}">Iniciar sesión</a><a th:href="@{/registro}">Crear cuenta ↗</a></nav>
+        </div>
+    </header>
+    <div class="workspace-topbar" sec:authorize="isAuthenticated()"><div class="workspace-trail"><span>Mi espacio</span><svg aria-hidden="true" viewBox="0 0 12 12" fill="none" stroke="currentColor"><path d="m4 2 4 4-4 4"/></svg><strong class="font-medium text-ink" th:text="${seccionActual ?: 'Inicio'}">Inicio</strong></div><span class="workspace-status"><span class="status-dot" aria-hidden="true"></span>UNIVERSIDAD ICESI</span></div>
+</th:block>
+<div th:fragment="mensajes" class="messages" aria-live="polite"><p class="alert alert-success" th:if="${exito}" th:text="${exito}">Operación completada.</p><p class="alert alert-error" role="alert" th:if="${error}" th:text="${error}">Revise la información.</p></div>
+</body>
+</html>
