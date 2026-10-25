@@ -103,6 +103,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         validarRolesExistentes(rolIds);
         Moneda moneda = monedas.findById(request.monedaId()).orElseThrow(() -> missing("Moneda"));
 
+        if (esUltimoAdministradorActivo(id) && (request.estado() != Estado.ACTIVO ||
+                usuario.getRoles().stream().noneMatch(ur -> rolIds.contains(ur.getRol().getId()) &&
+                        "ADMINISTRADOR".equalsIgnoreCase(ur.getRol().getNombre())))) {
+            throw conflict("No se puede desactivar ni retirar el rol al último administrador activo");
+        }
+
         usuario.setNombreCompleto(request.nombreCompleto().trim());
         usuario.setCorreo(correo);
         usuario.setMoneda(moneda);
@@ -173,6 +179,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         if (rolesUsuario.stream().filter(ur -> ur.getRol() != null).count() <= 1) {
             throw conflict("El usuario no puede quedar sin roles");
+        }
+        if (esUltimoAdministradorActivo(usuarioId) && rolesUsuario.stream().anyMatch(ur ->
+                Objects.equals(ur.getRol().getId(), rolId) &&
+                        "ADMINISTRADOR".equalsIgnoreCase(ur.getRol().getNombre()))) {
+            throw conflict("No se puede retirar el rol al último administrador activo");
         }
         rolesUsuario.removeIf(ur -> Objects.equals(ur.getRol().getId(), rolId));
         usuarios.save(usuario);

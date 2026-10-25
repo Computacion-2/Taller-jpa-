@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${creacion ? 'Crear usuario' : 'Editar usuario'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page page-form" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('USUARIOS_GESTIONAR')">
+    <a class="back-link" th:href="@{/usuarios}">← Volver a usuarios</a>
+    <div class="page-heading"><div><p class="page-kicker">01 / PERSONAS</p><h1 th:text="${creacion ? 'Crear usuario' : 'Editar usuario'}"></h1><p class="muted">Una cuenta, los accesos correctos. Completa sus datos y asigna sus roles.</p></div></div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <form class="stack" method="post" th:object="${usuario}" th:action="${creacion} ? @{/usuarios} : @{/usuarios/{id}(id=${usuarioId})}">
+        <div class="alert alert-error" role="alert" th:if="${#fields.hasAnyErrors()}">Hay datos por corregir. Revisa los campos señalados antes de guardar.</div>
+        <section class="card stack"><div class="form-section-title"><span class="form-section-number" aria-hidden="true">01</span><div><h2>Datos de la cuenta</h2><p class="muted">Todos los campos son obligatorios.</p></div></div>
+            <div class="form-group"><label for="nombreCompleto">Nombre completo</label><input id="nombreCompleto" th:field="*{nombreCompleto}" required maxlength="150" autocomplete="name" th:errorclass="input-error"><p class="field-error" th:errors="*{nombreCompleto}"></p></div>
+            <div class="grid grid-2"><div class="form-group"><label for="correo">Correo electrónico</label><input id="correo" type="email" th:field="*{correo}" required maxlength="150" autocomplete="email" th:errorclass="input-error"><p class="field-error" th:errors="*{correo}"></p></div>
+            <div class="form-group"><label for="monedaId">Moneda principal</label><select id="monedaId" th:field="*{monedaId}" required th:errorclass="input-error"><option value="">Seleccionar moneda</option><option th:each="moneda : ${monedas}" th:value="${moneda.id}" th:text="|${moneda.codigo} · ${moneda.nombre}|"></option></select><p class="field-error" th:errors="*{monedaId}"></p></div></div>
+            <div class="form-group" th:if="${creacion}"><label for="password">Contraseña inicial</label><input id="password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password" th:classappend="${#fields.hasErrors('password')} ? 'input-error' : ''"><small class="muted">Entre 8 y 72 caracteres. Por seguridad, vuelve a escribirla si el formulario presenta errores.</small><p class="field-error" th:errors="*{password}"></p></div>
+            <div class="form-group" th:unless="${creacion}"><label for="estado">Estado</label><select id="estado" th:field="*{estado}" required th:errorclass="input-error"><option th:each="opcion : ${estados}" th:value="${opcion}" th:text="${opcion.name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"></option></select><p class="field-error" th:errors="*{estado}"></p></div>
+        </section>
+        <section class="card stack"><fieldset><legend class="form-section-title"><span class="form-section-number" aria-hidden="true">02</span> Roles asignados</legend><p class="muted">Marca los roles que debe conservar. Desmarca uno para retirarlo; debe quedar al menos uno.</p><div class="choice-grid"><label class="choice" th:each="rol : ${roles}"><input type="checkbox" th:field="*{rolIds}" th:value="${rol.id()}"><span><strong th:text="${rol.nombre()}"></strong><small th:text="${rol.descripcion()}"></small><small th:if="${rol.estado().name() == 'INACTIVO'}">Rol inactivo</small></span></label></div><p class="field-error" th:errors="*{rolIds}"></p><p class="empty-state" th:if="${#lists.isEmpty(roles)}">Primero crea un rol para poder asignarlo.</p></fieldset></section>
+        <div class="form-actions"><a class="button button-secondary" th:href="@{/usuarios}">Cancelar</a><button class="button" type="submit" th:text="${creacion ? 'Crear usuario' : 'Guardar cambios'}">Guardar</button></div>
+    </form>
+</main>
+</body></html>

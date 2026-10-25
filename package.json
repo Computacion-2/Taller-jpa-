@@ -1,0 +1,17 @@
+{
+  "name": "finanzas-personales-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Estilos Tailwind CSS de las vistas Thymeleaf",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/main/frontend/app.css -o ./src/main/resources/static/css/app.css --minify",
+    "watch:css": "tailwindcss -i ./src/main/frontend/app.css -o ./src/main/resources/static/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "tailwindcss": "4.3.3"
+  },
+  "overrides": {
+    "@parcel/watcher": "2.6.0"
+  }
+}

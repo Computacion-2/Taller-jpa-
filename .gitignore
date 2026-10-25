@@ -5,3 +5,6 @@ data/
 .idea/
 .vscode/
 *.iml
+node_modules/
+.npm-cache/
+npm-debug.log*

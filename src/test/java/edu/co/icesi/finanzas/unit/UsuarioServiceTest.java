@@ -298,6 +298,72 @@ class UsuarioServiceTest {
     }
 
     @Test
+    void editarProtegeEstadoYRolDelUltimoAdministradorAntesDeModificarDatos() {
+        Usuario admin = usuarioConRol(1L, Estado.ACTIVO, "ADMINISTRADOR");
+        Rol rolComun = Fixtures.rol(2L);
+        UsuarioRol comun = new UsuarioRol();
+        comun.setRol(rolComun);
+        // Primero se evalúa un rol conservado que no es de administrador.
+        admin.getRoles().add(0, comun);
+        when(usuarios.findLockedById(1L)).thenReturn(Optional.of(admin));
+        when(usuarios.findAll()).thenReturn(List.of(admin));
+        when(roles.findAllById(Set.of(1L, 2L)))
+                .thenReturn(List.of(admin.getRoles().get(1).getRol(), rolComun));
+        when(roles.findAllById(Set.of(2L))).thenReturn(List.of(rolComun));
+        when(monedas.findById(1L)).thenReturn(Optional.of(Fixtures.moneda()));
+
+        assertThrows(BusinessException.class, () -> service.editar(1L, new UsuarioEditar(
+                "Nombre que no debe guardarse", "ana@u.icesi.edu.co", 1L,
+                Estado.INACTIVO, Set.of(1L, 2L))));
+        assertThrows(BusinessException.class, () -> service.editar(1L, new UsuarioEditar(
+                "Nombre que no debe guardarse", "ana@u.icesi.edu.co", 1L,
+                Estado.ACTIVO, Set.of(2L))));
+
+        assertEquals(Estado.ACTIVO, admin.getEstado());
+        assertEquals("Ana", admin.getNombreCompleto());
+        assertEquals(2, admin.getRoles().size());
+        verify(usuarios, never()).save(any());
+    }
+
+    @Test
+    void editarPermiteActualizarAlUltimoAdministradorSiConservaEstadoYRol() {
+        Usuario admin = usuarioConRol(1L, Estado.ACTIVO, "ADMINISTRADOR");
+        when(usuarios.findLockedById(1L)).thenReturn(Optional.of(admin));
+        when(usuarios.findAll()).thenReturn(List.of(admin));
+        when(roles.findAllById(Set.of(1L))).thenReturn(List.of(admin.getRoles().get(0).getRol()));
+        when(monedas.findById(1L)).thenReturn(Optional.of(Fixtures.moneda()));
+        when(usuarios.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UsuarioView actualizado = service.editar(1L, new UsuarioEditar(
+                "Administradora", "ana@u.icesi.edu.co", 1L, Estado.ACTIVO, Set.of(1L)));
+
+        assertEquals("Administradora", actualizado.nombreCompleto());
+        assertEquals(Estado.ACTIVO, actualizado.estado());
+        assertEquals(Set.of(1L), actualizado.rolIds());
+    }
+
+    @Test
+    void editarPermiteRetirarRolAdministradorSiOtraCuentaActivaLoConserva() {
+        Usuario admin = usuarioConRol(1L, Estado.ACTIVO, "ADMINISTRADOR");
+        Usuario otroAdmin = usuarioConRol(3L, Estado.ACTIVO, "ADMINISTRADOR");
+        Rol rolComun = Fixtures.rol(2L);
+        UsuarioRol comun = new UsuarioRol();
+        comun.setRol(rolComun);
+        admin.getRoles().add(comun);
+        when(usuarios.findLockedById(1L)).thenReturn(Optional.of(admin));
+        when(usuarios.findAll()).thenReturn(List.of(admin, otroAdmin));
+        when(roles.findAllById(Set.of(2L))).thenReturn(List.of(rolComun));
+        when(monedas.findById(1L)).thenReturn(Optional.of(Fixtures.moneda()));
+        when(usuarios.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UsuarioView actualizado = service.editar(1L, new UsuarioEditar(
+                "Ana", "ana@u.icesi.edu.co", 1L, Estado.INACTIVO, Set.of(2L)));
+
+        assertEquals(Estado.INACTIVO, actualizado.estado());
+        assertEquals(Set.of(2L), actualizado.rolIds());
+    }
+
+    @Test
     void cambiarEstadoPermiteRutasQueNoAmenazanAlUltimoAdministrador() {
         Usuario noAdmin = Fixtures.usuario();
         when(usuarios.findLockedById(2L)).thenReturn(Optional.of(noAdmin));
@@ -364,6 +430,42 @@ class UsuarioServiceTest {
 
         when(usuarios.findLockedById(4L)).thenReturn(Optional.empty());
         assertThrows(BusinessException.class, () -> service.retirarRol(4L, 1L));
+    }
+
+    @Test
+    void retirarRolProtegeAlUltimoAdministradorAunqueTengaOtrosRoles() {
+        Usuario admin = usuarioConRol(1L, Estado.ACTIVO, "ADMINISTRADOR");
+        UsuarioRol comun = new UsuarioRol();
+        comun.setRol(Fixtures.rol(2L));
+        admin.getRoles().add(0, comun);
+        when(usuarios.findLockedById(1L)).thenReturn(Optional.of(admin));
+        when(usuarios.findAll()).thenReturn(List.of(admin));
+
+        assertThrows(BusinessException.class, () -> service.retirarRol(1L, 1L));
+        assertEquals(2, admin.getRoles().size());
+        verify(usuarios, never()).save(any());
+
+        service.retirarRol(1L, 2L);
+        assertEquals(1, admin.getRoles().size());
+        assertEquals("ADMINISTRADOR", admin.getRoles().get(0).getRol().getNombre());
+        verify(usuarios).save(admin);
+    }
+
+    @Test
+    void retirarRolAdministradorEsValidoSiOtroAdministradorActivoPermanece() {
+        Usuario admin = usuarioConRol(1L, Estado.ACTIVO, "ADMINISTRADOR");
+        Usuario otroAdmin = usuarioConRol(3L, Estado.ACTIVO, "ADMINISTRADOR");
+        UsuarioRol comun = new UsuarioRol();
+        comun.setRol(Fixtures.rol(2L));
+        admin.getRoles().add(comun);
+        when(usuarios.findLockedById(1L)).thenReturn(Optional.of(admin));
+        when(usuarios.findAll()).thenReturn(List.of(admin, otroAdmin));
+
+        service.retirarRol(1L, 1L);
+
+        assertEquals(1, admin.getRoles().size());
+        assertEquals(2L, admin.getRoles().get(0).getRol().getId());
+        verify(usuarios).save(admin);
     }
 
     @Test

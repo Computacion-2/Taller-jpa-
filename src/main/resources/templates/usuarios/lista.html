@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Usuarios')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="contenido" class="page" sec:authorize="hasRole('ADMINISTRADOR') or hasAuthority('USUARIOS_GESTIONAR')">
+    <div class="module-heading">
+        <div class="module-intro"><p class="page-kicker">01 / PERSONAS</p><h1>Usuarios<span aria-hidden="true">.</span></h1><p class="muted">Las personas detrás de cada cuenta. Sus datos, sus roles y su lugar en miga.</p></div>
+        <div class="module-metric"><strong class="metric-value" th:text="${pagina.totalElements}">0</strong><span class="metric-label">cuentas en esta consulta</span></div>
+    </div>
+    <div class="module-toolbar"><p class="table-caption">DIRECTORIO DE LA COMUNIDAD</p><a class="button" th:href="@{/usuarios/nuevo}">Crear usuario <span aria-hidden="true">↗</span></a></div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <section class="card" aria-labelledby="filtros-titulo">
+        <h2 id="filtros-titulo" class="sr-only">Filtrar usuarios</h2>
+        <form class="filter-grid" method="get" th:action="@{/usuarios}">
+            <div class="form-group"><label for="texto">Nombre o correo</label><input id="texto" name="texto" type="search" placeholder="Buscar usuario…" th:value="${texto}" maxlength="150"></div>
+            <div class="form-group"><label for="rolId">Rol</label><select id="rolId" name="rolId"><option value="">Todos los roles</option><option th:each="rol : ${roles}" th:value="${rol.id()}" th:text="${rol.nombre()}" th:selected="${rol.id() == rolId}"></option></select></div>
+            <div class="form-group"><label for="estado">Estado</label><select id="estado" name="estado"><option value="">Todos los estados</option><option th:each="opcion : ${estados}" th:value="${opcion}" th:text="${opcion.name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}" th:selected="${opcion == estado}"></option></select></div>
+            <div class="filter-actions"><button class="button" type="submit">Buscar</button><a class="text-link" th:href="@{/usuarios}">Limpiar</a></div>
+        </form>
+    </section>
+    <section class="card table-card" aria-label="Resultados de usuarios">
+        <div class="table-heading"><h2>Cuentas registradas</h2><span class="table-caption" th:text="${pagina.totalElements} + ' en total'">0 en total</span></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(pagina.content)}"><h3>No hay usuarios para esta búsqueda</h3><p>Prueba con otros filtros o crea una cuenta.</p></div>
+        <div class="table-scroll" th:unless="${#lists.isEmpty(pagina.content)}"><table><thead><tr><th>Usuario</th><th>Roles</th><th>Estado</th><th>Registro</th><th class="actions-column">Acciones</th></tr></thead><tbody>
+        <tr th:each="usuario : ${pagina.content}">
+            <td><div class="person-cell"><span class="avatar avatar-coral" aria-hidden="true" th:text="${#strings.isEmpty(usuario.nombreCompleto()) ? '?' : #strings.toUpperCase(#strings.substring(usuario.nombreCompleto(), 0, 1))}">A</span><div><strong th:text="${usuario.nombreCompleto()}"></strong><span class="cell-secondary" th:text="${usuario.correo()}"></span></div></div></td>
+            <td><span class="tag" th:each="rol : ${roles}" th:if="${usuario.rolIds().contains(rol.id())}" th:text="${rol.nombre()}"></span></td>
+            <td><span class="badge" th:classappend="${usuario.estado().name() == 'ACTIVO' ? 'badge-active' : 'badge-inactive'}" th:text="${usuario.estado().name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"></span></td>
+            <td th:text="${#temporals.format(usuario.fechaRegistro(), 'dd/MM/yyyy')}"></td>
+            <td><div class="row-actions"><a class="text-link" th:href="@{/usuarios/{id}/editar(id=${usuario.id()})}" th:attr="aria-label=|Editar a ${usuario.nombreCompleto()}|">Editar</a><details class="delete-confirm"><summary>Eliminar</summary><div><p th:text="|¿Eliminar a ${usuario.nombreCompleto()}? Esta acción no se puede deshacer.|"></p><form method="post" th:action="@{/usuarios/{id}/eliminar(id=${usuario.id()})}"><button class="button button-danger button-small" type="submit">Confirmar eliminación</button></form></div></details></div></td>
+        </tr>
+        </tbody></table></div>
+        <nav class="pagination" aria-label="Páginas de usuarios" th:if="${pagina.totalPages > 1}">
+            <a class="button button-secondary button-small" th:if="${pagina.number > 0}" th:href="@{/usuarios(texto=${texto},rolId=${rolId},estado=${estado},page=${pagina.number - 1})}">Anterior</a>
+            <span th:text="|Página ${pagina.number + 1} de ${pagina.totalPages}|"></span>
+            <a class="button button-secondary button-small" th:if="${pagina.number + 1 < pagina.totalPages}" th:href="@{/usuarios(texto=${texto},rolId=${rolId},estado=${estado},page=${pagina.number + 1})}">Siguiente</a>
+        </nav>
+    </section>
+</main>
+</body></html>
