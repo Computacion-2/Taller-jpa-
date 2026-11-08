@@ -128,7 +128,9 @@ public class ReglasFinancieras {
                         .setParameter("estado", Estado.ACTIVO).getSingleResult() <= 1) {
                 throw conflict("No se puede retirar el ultimo administrador activo");
             }
+            e.getUsuario().getRoles().removeIf(link -> link.getId().equals(e.getId()));
         }
+        if (entity instanceof RolPermiso e) e.getRol().getPermisos().removeIf(link -> link.getId().equals(e.getId()));
     }
 
     private void activePlan(PlanAhorro plan) {
