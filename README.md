@@ -1,131 +1,114 @@
-# miga. · Finanzas personales — Taller MVC
+# Finanzas personales - Taller 4
 
-Aplicación de Computación en Internet II, Universidad Icesi. Este taller continúa el [mismo repositorio de JPA](https://github.com/Computacion-2/Taller-jpa-): conserva el modelo financiero, los repositorios, los servicios y la API, y agrega páginas con Spring MVC y Thymeleaf para administrar usuarios, roles y permisos.
+Backend REST con Spring Security, JWT, DTOs y MapStruct. El modulo MVC/Thymeleaf conserva sus vistas, sesiones y formularios con CSRF.
 
-## Ejecutar localmente
+## Ejecutar
 
-Requisitos: JDK 17 o 21 y acceso a Maven Central durante la primera compilación. Verificado con JDK 21. El proyecto incluye Maven Wrapper.
-
-Desde la raíz del repositorio, en PowerShell:
+Java 17 o 21. Maven Wrapper incluido. La primera compilacion requiere internet.
 
 ```powershell
 .\mvnw.cmd clean verify
 java -jar target/finanzas-personales-1.0.0.war
 ```
 
-En Linux o macOS:
+En Linux/macOS: `sh mvnw clean verify` y el mismo comando Java.
 
-```bash
-sh mvnw clean verify
-java -jar target/finanzas-personales-1.0.0.war
-```
+En Windows, `VERIFICAR-ANTES-DEL-PUSH.cmd` ejecuta la compilacion definitiva, comprueba MVC/Swagger y la coleccion Postman mediante HTTP real, y consulta el estado de GitHub. Requiere Java, Git, Node.js 20 o posterior e internet. No hace push. Si todo pasa, guarda `target/validacion-final.json` y muestra `VALIDACION COMPLETA`.
 
-Abrir [http://localhost:8080](http://localhost:8080). Para usar otro puerto, agregar `--server.port=18080` al comando de Java. Detener la aplicación con Ctrl+C antes de reconstruir el WAR en Windows.
-
-Si el comando `java` de Windows apunta a otra instalación, usar el ejecutable del JDK configurado para Maven: `& "$env:JAVA_HOME\bin\java.exe" -jar target/finanzas-personales-1.0.0.war`.
-
-El perfil predeterminado `demo` crea una base H2 en memoria. Sus cambios se pierden al detener la aplicación.
-
-| Cuenta de demostración | Contraseña | Rol |
-|---|---|---|
-| `admin@u.icesi.edu.co` | `Demo2026!` | ADMINISTRADOR |
-| `estudiante@u.icesi.edu.co` | `Demo2026!` | USUARIO |
-
-Estas cuentas son ficticias y corresponden al perfil `demo`, preparado para revisar el taller.
-
-## Compilar los estilos
-
-Las vistas usan **Tailwind CSS 4.3.3**, compilado localmente con su CLI oficial. El CSS generado se incluye en el repositorio y en el WAR; ejecutar Maven y la aplicación requiere únicamente Java, sin Node ni una conexión a un CDN.
-
-Para modificar los estilos o las clases de las plantillas, instalar Node.js y ejecutar desde la raíz:
-
-```powershell
-npm ci --cache .npm-cache
-npm run build:css
-```
-
-Durante el diseño se puede usar `npm run watch:css`, que recompila al guardar cambios. La fuente es `src/main/frontend/app.css` y el archivo generado es `src/main/resources/static/css/app.css`. Después de terminar, ejecutar `npm run build:css` para guardar la versión minificada y luego reconstruir el WAR.
-
-## Usar la aplicación
-
-| Ruta | Función |
+| Acceso local | URL |
 |---|---|
-| `/` | Inicio y navegación según el acceso de la cuenta |
-| `/login` | Iniciar sesión con correo y contraseña |
-| `/registro` | Registrar una cuenta con correo `@u.icesi.edu.co` y rol USUARIO |
-| `/usuarios` | Consultar, crear, editar y eliminar usuarios; asignar o retirar roles desde la edición |
-| `/roles` | Consultar, crear, editar y eliminar roles y seleccionar sus permisos |
-| `/permisos` | Consultar, crear, editar y eliminar permisos |
+| MVC | http://localhost:8080/login |
+| Swagger UI | http://localhost:8080/swagger-ui/index.html |
+| OpenAPI JSON | http://localhost:8080/v3/api-docs |
+| Login REST | POST http://localhost:8080/api/auth/login |
 
-Las páginas administrativas requieren el rol ADMINISTRADOR o el permiso activo del módulo: `USUARIOS_GESTIONAR`, `ROLES_GESTIONAR` o `PERMISOS_GESTIONAR`. La autorización se verifica en el servidor. Ocultar un enlace en la navegación no sustituye ese control.
+Perfil predeterminado: `demo`, con H2 en memoria. Los cambios se pierden al detener la aplicacion.
 
-Los formularios muestran los errores de validación junto a los datos y conservan los valores permitidos al corregirlos. Una operación completada redirige a una página de consulta mediante el patrón POST/Redirect/GET (PRG), para que actualizar el navegador no repita la escritura. Los formularios de cambios y la salida de sesión incluyen protección CSRF.
+| Cuenta demo | Password | Rol |
+|---|---|---|
+| admin@u.icesi.edu.co | Demo2026! | ADMINISTRADOR |
+| estudiante@u.icesi.edu.co | Demo2026! | USUARIO |
 
-## Arquitectura y pruebas
+El WAR anterior en `artifacts/` pertenece al taller MVC. Para este taller se utiliza el WAR reconstruido en `target/`.
 
-```text
-src/main/java/edu/co/icesi/finanzas/
-  entity/          Modelo JPA, asociaciones y claves compuestas
-  repo/            Repositorios Spring Data JPA
-  service/         Interfaces de servicios
-  service/impl/    Reglas de negocio y transacciones
-  dto/             Datos de entrada y salida; formularios en dto/form
-  controller/      Controladores MVC que devuelven vistas y redirecciones
-  api/             Controladores REST del taller JPA
-  security/        UserDetailsService y cadenas de seguridad web/API
-  config/          Inicialización de producción
-  exception/       Manejo separado de errores MVC y REST
-src/main/resources/
-  templates/       Páginas Thymeleaf
-  static/          Estilos de la aplicación
-  db/              Esquema SQL y datos iniciales
-src/test/java/     Pruebas de servicios e integración
+## Autenticacion
+
+Enviar `POST /api/auth/login` con JSON:
+
+```json
+{"correo":"estudiante@u.icesi.edu.co","password":"Demo2026!"}
 ```
 
-Los controladores MVC usan los servicios existentes. Las operaciones de negocio y la persistencia continúan en la capa de servicios; las vistas no acceden directamente a los repositorios. Las contraseñas se almacenan con BCrypt y no se muestran en listas o formularios de edición.
+La respuesta contiene `accessToken`, `tokenType`, `issuedAt`, `expiresAt`, `correo` y `roles`. En las siguientes solicitudes: `Authorization: Bearer <accessToken>`. En Swagger, pegar solo el token en **Authorize**.
 
-La distribución `controller` / `api` / `security` sigue el ejemplo docente [262WebApp6](https://github.com/Domiciano/262WebApp6).
+El JWT contiene `sub`, `iss`, `iat`, `nbf`, `exp`, roles y autoridades; se firma con HS256 y dura 3600 segundos por defecto. Cada solicitud vuelve a consultar el usuario y sus autoridades: desactivar la cuenta invalida su acceso y revocar un permiso se aplica inmediatamente. Cambiar la contrasena no revoca automaticamente los JWT existentes; vencen al expirar. La API no crea sesiones ni admite HTTP Basic. Una sesion MVC no autentica la API y un JWT no inicia sesion en MVC.
 
-`clean verify` ejecuta las pruebas y la verificación de JaCoCo. El proyecto configura un umbral propio del 100 % de líneas y ramas de las implementaciones de los servicios; el enunciado pide pruebas para todos los servicios. Revisar los resultados de la ejecución actual en `target/surefire-reports` y el reporte de cobertura en `target/site/jacoco/index.html`.
+Registro publico: `POST /api/auth/registro`. La ruta anterior `/api/registro` sigue disponible. Solo se asigna USUARIO; el JSON no admite roles ni passwordHash. Perfil y cambio de contrasena: `GET /api/me` y `PUT /api/me/password`.
 
-Para ejecutar solamente las pruebas, usar `.\mvnw.cmd test` en PowerShell o `sh mvnw test` en Bash. Las pruebas cubren los cuatro servicios y los flujos MVC de autenticación, formularios, CSRF y autorización.
+## Recursos
 
-Para comprobar manualmente la aplicación con el perfil `demo`:
+Todas las filas incluyen GET listado, GET por clave, POST, PUT por clave y DELETE por clave. POST devuelve 201, PUT/GET 200 y DELETE 204. Las creaciones principales incluyen Location. Swagger documenta los cuerpos y tipos de todos los metodos.
 
-1. Entrar como administrador y abrir usuarios, roles y permisos.
-2. Crear un permiso de prueba y asociarlo a un nuevo rol.
-3. Crear o editar un usuario para asignarle ese rol; retirar o sustituirlo desde la edición.
-4. Probar campos inválidos o duplicados y comprobar los mensajes del formulario.
-5. Eliminar los datos de prueba después de retirar sus asociaciones; comprobar que los roles base están protegidos.
-6. Cerrar sesión y registrar una cuenta institucional. Verificar que no recibe privilegios administrativos.
-7. Entrar como estudiante e intentar acceder directamente a `/usuarios`, `/roles` y `/permisos`; debe denegarse el acceso.
-8. Ejecutar las pruebas de integración para comprobar, además, el rechazo de operaciones sin CSRF y la actualización de permisos en sesiones abiertas.
+| Recurso | Ruta | Clave |
+|---|---|---|
+| Usuario | /api/admin/usuarios | id |
+| Rol | /api/admin/roles | id |
+| Permiso | /api/admin/permisos | id |
+| UsuarioRol | /api/admin/usuarios-roles | usuarioId/rolId |
+| RolPermiso | /api/admin/roles-permisos | rolId/permisoId |
+| Moneda | /api/monedas | id |
+| TipoCuenta | /api/tipos-cuenta | id |
+| Categoria | /api/categorias | id |
+| Cuenta | /api/cuentas | id |
+| Movimiento | /api/movimientos | id |
+| MovimientoRecurrente | /api/movimientos-recurrentes | id |
+| Presupuesto | /api/presupuestos | id |
+| Deuda | /api/deudas | id |
+| AbonoDeuda | /api/abonos-deuda | id |
+| PlanAhorro | /api/planes-ahorro | id |
+| InvitacionPlan | /api/invitaciones-plan | id |
+| AportePlan | /api/aportes-plan | id |
+| ParticipacionPlan | /api/participaciones-plan | planId/usuarioId |
 
-## WAR de entrega
+Ejemplo de clave compuesta: `/api/participaciones-plan/1/2`. En PUT, las claves del JSON deben coincidir con la ruta. Los identificadores simples y fechas de creacion son generados por el servidor.
 
-Según las aclaraciones del profesor, la entrega en pareja está autorizada y el binario se incluye en la carpeta `artifacts/` del mismo repositorio de Classroom. No es obligatorio desplegarlo en IAsLab.
+## Autorizacion y reglas
 
-El [WAR incluido](artifacts/finanzas-personales-1.0.0.war) puede ejecutarse directamente desde la raíz con Java 17 o posterior:
+- ADMINISTRADOR gestiona usuarios, roles, permisos y catalogos. Se conserva el ultimo administrador activo, al menos un rol por usuario y un permiso por rol.
+- La operacion financiera requiere ADMINISTRADOR o GESTIONAR_FINANZAS. Los usuarios consultan y modifican sus datos. Un identificador ajeno responde 404 y una escritura no autorizada 403.
+- Monedas, tipos de cuenta y categorias globales son consultables; solo el administrador modifica los catalogos globales.
+- Los movimientos ajustan el saldo de la cuenta al crearse, editarse o eliminarse, dentro de una transaccion con bloqueo. Una categoria debe corresponder al tipo de movimiento y ser global o del mismo usuario.
+- El saldo pendiente de una deuda se calcula a partir de su monto y abonos. No se acepta un abono mayor al saldo. Al saldarse cambia el estado a SALDADA; eliminar un abono revierte el saldo.
+- Solo el propietario administra un plan y sus participantes. El invitado acepta o rechaza su invitacion; aceptar crea su participacion. No se invita a planes individuales ni se cambia el destinatario al responder.
+- Un aporte requiere pertenecer al plan y usar una cuenta propia. Los aportes representan ahorro reservado; no generan otro movimiento ni descuentan dos veces el saldo. Las recurrencias se almacenan como programaciones; este taller no ejecuta un planificador automatico.
+- Las relaciones existentes impiden eliminaciones destructivas y devuelven 409. Las entradas invalidas responden 400; credenciales o tokens invalidos, 401. Los errores REST tienen formato ProblemDetail y no incluyen trazas ni SQL.
+
+## Pruebas
+
+`clean verify` ejecuta pruebas de servicios, MVC y REST, ademas del control JaCoCo existente para los servicios del taller anterior. Las pruebas nuevas cubren las 18 entidades, JWT, permisos, datos ajenos, saldos, asociaciones y Swagger. Los resultados actuales se generan en `target/surefire-reports/` y `target/site/jacoco/`.
+
+En Postman:
+
+1. Importar `postman/Finanzas.postman_collection.json` y `postman/Local.postman_environment.json`.
+2. Seleccionar **Finanzas local demo** y ajustar `baseUrl` si cambia el puerto o el contexto Tomcat.
+3. Abrir **Runner**, seleccionar toda la coleccion y ejecutar en orden.
+
+La coleccion obtiene tokens e identificadores, prueba los CRUD y errores, y elimina los datos creados. Sus cuentas demo no deben usarse en produccion. Si una ejecucion se interrumpe, reiniciar el perfil demo antes de repetirla. No cambiar el orden.
+
+Tambien puede ejecutarse la misma secuencia y sus scripts con Node.js 20 o posterior, sin instalar paquetes:
 
 ```bash
-java -jar artifacts/finanzas-personales-1.0.0.war
+node scripts/verificar-api.mjs
 ```
 
-Abrir [http://localhost:8080/login](http://localhost:8080/login) y usar las cuentas demo indicadas arriba. Para reconstruir y actualizar el archivo en PowerShell:
+Para otro puerto: `node scripts/verificar-api.mjs postman/Local.postman_environment.json http://localhost:18084`. El reporte sin tokens se guarda en `target/postman-report.json`. Este ejecutor soporta los scripts de esta coleccion; no pretende reemplazar todas las funciones de Postman.
 
-```powershell
-.\mvnw.cmd clean verify
-if ($LASTEXITCODE -ne 0) { throw 'La compilación o las pruebas fallaron.' }
-New-Item -ItemType Directory -Path artifacts -Force | Out-Null
-Copy-Item -LiteralPath 'target/finanzas-personales-1.0.0.war' -Destination 'artifacts/finanzas-personales-1.0.0.war' -Force
-```
+Si Node.js esta disponible, Maven tambien ejecuta la coleccion y sus scripts mediante MockMvc, sin abrir puertos. Sin Node se omite esa prueba; ejecutar entonces la coleccion desde Postman. Esto complementa la comprobacion HTTP local. El despliegue no forma parte del alcance actual.
 
-En Bash:
+## Estructura
 
-```bash
-sh mvnw clean verify || exit 1
-mkdir -p artifacts
-cp target/finanzas-personales-1.0.0.war artifacts/finanzas-personales-1.0.0.war
-```
+`controller/` conserva MVC; `api/` contiene REST; `api/dto/` y `api/mapper/` separan los contratos y sus conversiones MapStruct. `api/service/` contiene transacciones, propiedad de recursos y reglas financieras. `service/impl/` conserva la administracion existente compartida con MVC. `security/` contiene UserDetailsService, JwtService, SecurityFilter y las dos SecurityFilterChain ordenadas.
 
-Detener primero cualquier ejecución que mantenga abierto el archivo que se va a reemplazar. Entregar el `.war` ejecutable; `target/`, `*.war.original`, dependencias descargadas y archivos locales de trabajo no forman parte de la entrega.
+Se tomaron como referencia la separacion MVC/REST y las cadenas de seguridad de [262WebApp6](https://github.com/Domiciano/262WebApp6) y las notas REST/JWT/Postman de [Compunet2-252](https://github.com/Domiciano/Compunet2-252). Se consultaron las copias locales disponibles; no se pudo actualizar GitHub durante esta preparacion.
+
+Guia de demostracion y validacion: [docs/ENTREGA_BACKEND.md](docs/ENTREGA_BACKEND.md).
