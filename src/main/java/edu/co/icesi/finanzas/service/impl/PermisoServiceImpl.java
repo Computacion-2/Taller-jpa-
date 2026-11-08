@@ -19,7 +19,7 @@ public class PermisoServiceImpl implements PermisoService {
     public List<PermisoView> listar() { return permisos.findAll().stream().map(Views::permiso).toList(); }
     public PermisoView obtener(Long id) { return Views.permiso(permisos.findById(id).orElseThrow(() -> missing("Permiso"))); }
     @Transactional
-    public PermisoView crear(PermisoRequest request) { return guardar(new Permiso(), request); }
+    public PermisoView crear(PermisoRequest request) { return guardar(Views.PERMISOS.dtoToEntity(request), request); }
     @Transactional
     public PermisoView actualizar(Long id, PermisoRequest request) {
         return guardar(permisos.findLockedById(id).orElseThrow(() -> missing("Permiso")), request);

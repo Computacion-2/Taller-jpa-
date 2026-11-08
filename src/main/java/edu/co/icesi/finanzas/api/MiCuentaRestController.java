@@ -1,35 +1,45 @@
 package edu.co.icesi.finanzas.api;
 
-import edu.co.icesi.finanzas.dto.CambioPassword;
-import edu.co.icesi.finanzas.dto.RegistroRequest;
-import edu.co.icesi.finanzas.dto.UsuarioView;
+import edu.co.icesi.finanzas.dto.*;
+import edu.co.icesi.finanzas.repo.UsuarioRepository;
 import edu.co.icesi.finanzas.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import static edu.co.icesi.finanzas.exception.BusinessException.missing;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class MiCuentaRestController {
     private final UsuarioService service;
+    private final UsuarioRepository usuarios;
 
+    @Operation(summary = "Registrar una cuenta (ruta compatible con JPA)")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     @PostMapping("/registro")
     @ResponseStatus(HttpStatus.CREATED)
     public UsuarioView registrar(@Valid @RequestBody RegistroRequest request) {
         return service.registrar(request);
     }
 
+    @Operation(summary = "Consultar el perfil autenticado")
+    @GetMapping("/me")
+    public UsuarioView perfil(Authentication auth) { return service.obtener(id(auth)); }
+
+    @Operation(summary = "Cambiar la contrasena propia")
     @PutMapping("/me/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cambiarPassword(Authentication authentication, @Valid @RequestBody CambioPassword request) {
-        String correo = authentication.getName();
-        var usuario = service.listar(correo, null, null, org.springframework.data.domain.PageRequest.of(0, 1));
-        if (usuario.content().isEmpty()) {
-            throw new IllegalStateException("Usuario autenticado no encontrado");
-        }
-        service.cambiarPassword(usuario.content().get(0).id(), request);
+    public void cambiarPassword(Authentication auth, @Valid @RequestBody CambioPassword request) {
+        service.cambiarPassword(id(auth), request);
+    }
+
+    private Long id(Authentication auth) {
+        return usuarios.findByCorreoIgnoreCase(auth.getName()).orElseThrow(() -> missing("Usuario")).getId();
     }
 }

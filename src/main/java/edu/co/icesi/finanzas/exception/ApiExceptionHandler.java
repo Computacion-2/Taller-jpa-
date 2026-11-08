@@ -22,6 +22,15 @@ public class ApiExceptionHandler {
     ResponseEntity<ProblemDetail> integrity(DataIntegrityViolationException ex) {
         return problem(HttpStatus.CONFLICT, "La operacion viola una restriccion o el registro conserva datos asociados");
     }
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    ResponseEntity<ProblemDetail> authentication(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("WWW-Authenticate", "Bearer")
+            .body(ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Credenciales invalidas"));
+    }
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    ResponseEntity<ProblemDetail> forbidden(Exception ex) {
+        return problem(HttpStatus.FORBIDDEN, "No tiene permisos para esta operacion");
+    }
     private ResponseEntity<ProblemDetail> problem(HttpStatus status, String detail) {
         return ResponseEntity.status(status).body(ProblemDetail.forStatusAndDetail(status, detail));
     }

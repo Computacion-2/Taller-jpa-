@@ -1,18 +1,14 @@
 package edu.co.icesi.finanzas.dto;
 import edu.co.icesi.finanzas.entity.*;
-import java.util.stream.Collectors;
+import edu.co.icesi.finanzas.api.mapper.*;
+import org.mapstruct.factory.Mappers;
+
 public final class Views {
+    public static final PermisoMapper PERMISOS = Mappers.getMapper(PermisoMapper.class);
+    public static final RolMapper ROLES = Mappers.getMapper(RolMapper.class);
+    public static final UsuarioMapper USUARIOS = Mappers.getMapper(UsuarioMapper.class);
     private Views() {}
-    public static PermisoView permiso(Permiso p) {
-        return new PermisoView(p.getId(), p.getNombre(), p.getDescripcion(), p.getEstado());
-    }
-    public static RolView rol(Rol r) {
-        return new RolView(r.getId(), r.getNombre(), r.getDescripcion(), r.getEstado(),
-            r.getPermisos().stream().map(x -> x.getPermiso().getId()).collect(Collectors.toSet()));
-    }
-    public static UsuarioView usuario(Usuario u) {
-        return new UsuarioView(u.getId(), u.getNombreCompleto(), u.getCorreo(), u.getFotoUrl(),
-            u.getProgramaAcademico(), u.getMoneda().getId(), u.getEstado(), u.getFechaRegistro(),
-            u.getFechaActualizacion(), u.getRoles().stream().map(x -> x.getRol().getId()).collect(Collectors.toSet()));
-    }
+    public static PermisoView permiso(Permiso entity) { return PERMISOS.entityToDto(entity); }
+    public static RolView rol(Rol entity) { return ROLES.entityToDto(entity); }
+    public static UsuarioView usuario(Usuario entity) { return USUARIOS.entityToDto(entity); }
 }

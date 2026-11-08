@@ -62,7 +62,7 @@ public class RolServiceImpl implements RolService {
         }
         validarPermisosExistentes(permisoIds);
 
-        Rol rol = new Rol();
+        Rol rol = Views.ROLES.dtoToEntity(request);
         rol.setNombre(nombre);
         rol.setDescripcion(descripcion(request.descripcion()));
         rol.setEstado(request.estado());

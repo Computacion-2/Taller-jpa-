@@ -1,5 +1,6 @@
 package edu.co.icesi.finanzas.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.co.icesi.finanzas.dto.*;
 import edu.co.icesi.finanzas.entity.enums.Estado;
 import edu.co.icesi.finanzas.repo.*;
@@ -34,6 +35,7 @@ class MvcIntegrationTest {
     @Autowired PermisoService permisoService;
     @Autowired PasswordEncoder encoder;
     @Autowired EntityManager em;
+    @Autowired ObjectMapper objectMapper;
 
     private MockHttpSession login(String correo) throws Exception {
         return (MockHttpSession) mvc.perform(post("/login").with(csrf())
@@ -172,12 +174,37 @@ class MvcIntegrationTest {
         mvc.perform(get("/roles").session(sesion)).andExpect(status().isForbidden());
     }
 
-    @Test void apiAnteriorConservaContratoYAutenticacionBasic() throws Exception {
+    @Test void apiExigeJwtYNoComparteLaSesionMvc() throws Exception {
         mvc.perform(get("/api/admin/usuarios")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/usuarios").with(httpBasic("admin@u.icesi.edu.co", "Demo2026!")))
-            .andExpect(status().isOk()).andExpect(jsonPath("content").isArray());
-        mvc.perform(get("/api/admin/roles").with(httpBasic("estudiante@u.icesi.edu.co", "Demo2026!")))
+            .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/usuarios").session(admin())).andExpect(status().isUnauthorized());
+    }
+
+    @Test void apiEmiteJwtProtegeRecursosYPublicaEsquemaOpenApi() throws Exception {
+        var login = mvc.perform(post("/api/auth/login").contentType("application/json")
+                .content("""
+                    {"correo":"estudiante@u.icesi.edu.co","password":"Demo2026!"}
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.tokenType").value("Bearer"))
+            .andExpect(jsonPath("$.issuedAt").isNotEmpty())
+            .andExpect(jsonPath("$.expiresAt").isNotEmpty())
+            .andExpect(jsonPath("$.roles", hasItem("ROLE_USUARIO")))
+            .andReturn();
+        String token = objectMapper.readTree(login.getResponse().getContentAsString())
+            .path("accessToken").asText();
+
+        mvc.perform(get("/api/monedas")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/monedas").header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk()).andExpect(jsonPath("$").isArray());
+        mvc.perform(get("/api/admin/usuarios").header("Authorization", "Bearer " + token))
             .andExpect(status().isForbidden());
+        mvc.perform(get("/v3/api-docs"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type").value("http"))
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"));
     }
 
     @Test void permisoDesactivadoRetiraAccesoEnSesionAbierta() throws Exception {

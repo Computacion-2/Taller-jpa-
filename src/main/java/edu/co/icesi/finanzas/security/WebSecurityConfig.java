@@ -35,36 +35,47 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /** Mantiene el contrato de la API del taller JPA y su autenticación Basic. */
+    @Bean
+    org.springframework.security.authentication.AuthenticationManager authenticationManager(
+            org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config)
+            throws Exception {
+        return config.getAuthenticationManager();
+    }
+
     @Bean
     @Order(1)
-    SecurityFilterChain apiFilterChain(HttpSecurity http, ObjectMapper mapper) throws Exception {
-        AuthenticationEntryPoint entrada = (request, response, error) -> {
+    SecurityFilterChain apiFilterChain(HttpSecurity http, ObjectMapper mapper,
+            JwtService jwt, AutenticacionService users) throws Exception {
+        AuthenticationEntryPoint entry = (request, response, error) -> {
             response.setStatus(401);
-            response.setHeader("WWW-Authenticate", "Basic realm=\"finanzas\"");
-            response.setContentType("application/json");
+            response.setHeader("WWW-Authenticate", "Bearer");
+            response.setContentType("application/problem+json");
             response.setCharacterEncoding("UTF-8");
-            mapper.writeValue(response.getWriter(), ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED,
-                "Se requiere autenticación"));
+            mapper.writeValue(response.getWriter(), ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED, "Se requiere un token Bearer"));
         };
-        return http
-            .securityMatcher("/api/**")
+        return http.securityMatcher("/api/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
             .csrf(AbstractHttpConfigurer::disable)
+            .requestCache(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/registro").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registro", "/api/registro").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/me/**").authenticated()
-                .anyRequest().authenticated())
-            .exceptionHandling(errors -> errors.accessDeniedHandler((request, response, error) -> {
-                response.setStatus(403);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                mapper.writeValue(response.getWriter(), ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN,
-                    "No tiene permisos para esta operación"));
-            }).authenticationEntryPoint(entrada))
-            .httpBasic(basic -> basic.authenticationEntryPoint(entrada))
+                .requestMatchers("/api/me", "/api/me/**").authenticated()
+                .anyRequest().hasAnyAuthority("ROLE_ADMINISTRADOR", "GESTIONAR_FINANZAS"))
+            .exceptionHandling(errors -> errors.authenticationEntryPoint(entry)
+                .accessDeniedHandler((request, response, error) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/problem+json");
+                    response.setCharacterEncoding("UTF-8");
+                    mapper.writeValue(response.getWriter(), ProblemDetail.forStatusAndDetail(
+                        HttpStatus.FORBIDDEN, "No tiene permisos para esta operacion"));
+                }))
+            .addFilterBefore(new SecurityFilter(jwt, users, mapper),
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .build();
     }
 

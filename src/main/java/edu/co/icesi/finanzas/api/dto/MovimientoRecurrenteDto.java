@@ -1,0 +1,19 @@
+package edu.co.icesi.finanzas.api.dto;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import jakarta.validation.constraints.*;
+import edu.co.icesi.finanzas.entity.enums.*;
+public record MovimientoRecurrenteDto(
+    Long id,
+    Long usuarioId,
+    Long cuentaId,
+    Long categoriaId,
+    TipoMovimiento tipo,
+    BigDecimal monto,
+    Periodicidad periodicidad,
+    LocalDate fechaInicio,
+    LocalDate fechaCorte,
+    LocalDate proximaOcurrencia,
+    EstadoRecurrente estado,
+    String descripcion
+) {}

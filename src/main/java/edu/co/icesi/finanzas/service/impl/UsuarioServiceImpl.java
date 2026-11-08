@@ -66,7 +66,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         validarRolesExistentes(rolIds);
 
         Moneda moneda = monedas.findById(request.monedaId()).orElseThrow(() -> missing("Moneda"));
-        Usuario usuario = new Usuario();
+        Usuario usuario = Views.USUARIOS.dtoToEntity(new UsuarioCrear(request.nombreCompleto(), request.correo(), request.password(), request.monedaId(), java.util.Set.of()));
         usuario.setNombreCompleto(request.nombreCompleto().trim());
         usuario.setCorreo(correo);
         usuario.setPasswordHash(passwordEncoder.encode(request.password()));
@@ -233,7 +233,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Rol rolUsuario = roles.findByNombre("USUARIO").orElseThrow(() -> missing("Rol"));
         Moneda moneda = monedas.findById(request.monedaId()).orElseThrow(() -> missing("Moneda"));
 
-        Usuario usuario = new Usuario();
+        Usuario usuario = Views.USUARIOS.dtoToEntity(new UsuarioCrear(request.nombreCompleto(), request.correo(), request.password(), request.monedaId(), java.util.Set.of()));
         usuario.setNombreCompleto(request.nombreCompleto().trim());
         usuario.setCorreo(correo);
         usuario.setPasswordHash(passwordEncoder.encode(request.password()));
