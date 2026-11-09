@@ -39,6 +39,9 @@ class RestIntegrationTest {
     @Autowired EntityManager em;
     @Autowired UsuarioRepository usuarios;
     @Autowired PermisoRepository permisos;
+    @Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("requestMappingHandlerMapping")
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
     @Value("${app.jwt.secret}") String secret;
 
     private JsonNode send(MockHttpServletRequestBuilder request, int status) throws Exception {
@@ -235,6 +238,50 @@ class RestIntegrationTest {
             assertNotNull(operations,resource); assertTrue(operations.has("get"),resource); assertTrue(operations.has("post"),resource);
         }
         mvc.perform(get("/swagger-ui/index.html")).andExpect(status().isOk());
+    }
+
+    @Test void swaggerDocumentaCadaMetodoConSuRespuestaReal() throws Exception {
+        JsonNode doc = send(get("/v3/api-docs"), 200);
+        int operations = 0;
+        for (var entry : mappings.getHandlerMethods().entrySet()) {
+            var handler = entry.getValue();
+            if (!handler.getBeanType().getPackageName().equals("edu.co.icesi.finanzas.api")) continue;
+            var status = org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation(
+                handler.getMethod(), org.springframework.web.bind.annotation.ResponseStatus.class);
+            String code = status == null ? "200" : Integer.toString(status.code().value());
+            for (String path : entry.getKey().getPatternValues()) {
+                for (var method : entry.getKey().getMethodsCondition().getMethods()) {
+                    String label = method + " " + path;
+                    JsonNode operation = doc.path("paths").path(path).path(method.name().toLowerCase(java.util.Locale.ROOT));
+                    assertFalse(operation.isMissingNode(), label);
+                    assertFalse(operation.path("summary").asText().isBlank(), label);
+                    JsonNode response = operation.path("responses").path(code);
+                    assertFalse(response.isMissingNode(), label + " falta " + code);
+                    if (code.equals("204")) {
+                        assertTrue(response.path("content").isMissingNode() || response.path("content").isEmpty(), label);
+                    } else {
+                        assertFalse(response.path("content").path("application/json").path("schema").isMissingNode(), label);
+                    }
+                    for (String error : new String[]{"400", "401", "403", "404", "409"}) {
+                        assertEquals("#/components/schemas/ProblemDetail", operation.path("responses").path(error)
+                            .path("content").path("application/problem+json").path("schema").path("$ref").asText(), label + " " + error);
+                    }
+                    for (var parameter : handler.getMethodParameters()) {
+                        if (parameter.hasParameterAnnotation(org.springframework.web.bind.annotation.RequestBody.class)) {
+                            assertFalse(operation.path("requestBody").path("content").path("application/json").path("schema").isMissingNode(), label);
+                        }
+                    }
+                    operations++;
+                }
+            }
+        }
+        assertEquals(99, operations, "Todas las operaciones REST deben estar documentadas");
+        for (String path : new String[]{"/api/auth/login", "/api/auth/registro", "/api/registro"}) {
+            assertTrue(doc.path("paths").path(path).path("post").path("security").isArray(), path);
+            assertTrue(doc.path("paths").path(path).path("post").path("security").isEmpty(), path);
+        }
+        java.nio.file.Files.writeString(java.nio.file.Path.of("target/openapi-validado.json"),
+            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(doc));
     }
 
     @Test void categoriasCompartidasYClavesCompuestasValidanSusLimites() throws Exception {

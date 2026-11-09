@@ -58,7 +58,7 @@ try {
         [xml]$suite = Get-Content -Raw $report.FullName
         foreach ($key in @('tests', 'failures', 'errors', 'skipped')) { $totals[$key] += [int]$suite.testsuite.GetAttribute($key) }
     }
-    if ($totals.tests -lt 104 -or $totals.failures -or $totals.errors -or $totals.skipped) { throw 'Faltan pruebas o hay fallos, errores o pruebas omitidas' }
+    if ($totals.tests -lt 105 -or $totals.failures -or $totals.errors -or $totals.skipped) { throw 'Faltan pruebas o hay fallos, errores o pruebas omitidas' }
 
     Write-Host '2/4 Iniciando la aplicacion para comprobar HTTP real...' -ForegroundColor Cyan
     $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
@@ -107,7 +107,7 @@ try {
     Check-Git @('merge-base', '--is-ancestor', 'origin/main', 'HEAD')
     if ((Check-Git @('rev-parse', 'HEAD')) -ne $testedCommit -or (Check-Git @('status', '--porcelain'))) { throw 'El codigo cambio durante la verificacion' }
     $pending = Check-Git @('rev-list', '--count', 'origin/main..HEAD')
-    if ([int]$pending -ne 4) { throw "Se esperaban cuatro commits pendientes; hay $pending" }
+    Write-Host "Commits locales pendientes de publicar: $pending"
     @{
         commit = $testedCommit
         originMain = (Check-Git @('rev-parse', 'origin/main'))

@@ -45,6 +45,12 @@ El JWT contiene `sub`, `iss`, `iat`, `nbf`, `exp`, roles y autoridades; se firma
 
 Registro publico: `POST /api/auth/registro`. La ruta anterior `/api/registro` sigue disponible. Solo se asigna USUARIO; el JSON no admite roles ni passwordHash. Perfil y cambio de contrasena: `GET /api/me` y `PUT /api/me/password`.
 
+## Documentacion Swagger
+
+Swagger incluye las 99 operaciones de los 20 controladores REST. Cada metodo documenta su respuesta de exito (200, 201 o 204), el esquema JSON correspondiente y los errores en formato `application/problem+json` con `ProblemDetail`. Las respuestas 204 no incluyen cuerpo. Los DTOs y sus restricciones de validacion describen los cuerpos de entrada.
+
+Para probar la API, ejecutar primero `POST /api/auth/login`, copiar `accessToken` y pegarlo en **Authorize**. El login y ambas rutas de registro son publicos; las demas operaciones requieren JWT. La prueba `swaggerDocumentaCadaMetodoConSuRespuestaReal` compara todos los metodos REST registrados con el OpenAPI generado y guarda `target/openapi-validado.json`.
+
 ## Recursos
 
 Todas las filas incluyen GET listado, GET por clave, POST, PUT por clave y DELETE por clave. POST devuelve 201, PUT/GET 200 y DELETE 204. Las creaciones principales incluyen Location. Swagger documenta los cuerpos y tipos de todos los metodos.
