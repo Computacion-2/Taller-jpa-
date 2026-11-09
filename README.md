@@ -1,120 +1,106 @@
-# Finanzas personales - Taller 4
+# Finanzas personales
 
-Backend REST con Spring Security, JWT, DTOs y MapStruct. El modulo MVC/Thymeleaf conserva sus vistas, sesiones y formularios con CSRF.
+Aplicación con interfaz web para administrar usuarios, roles y permisos, y una API REST para gestionar cuentas, movimientos, presupuestos, deudas y planes de ahorro.
 
-## Ejecutar
+## Ejecutar la aplicación
 
-Java 17 o 21. Maven Wrapper incluido. La primera compilacion requiere internet.
+Requisitos: **JDK 17 o 21**, con `java` disponible en la terminal, e internet para la primera descarga de dependencias. El proyecto incluye Maven Wrapper.
 
-```powershell
-.\mvnw.cmd clean verify
-java -jar target/finanzas-personales-1.0.0.war
-```
+1. Abrir una terminal en la carpeta que contiene `pom.xml`.
+2. En **PowerShell o CMD**, compilar, ejecutar las pruebas y generar el archivo WAR:
 
-En Linux/macOS: `sh mvnw clean verify` y el mismo comando Java.
+   ```powershell
+   .\mvnw.cmd clean verify
+   ```
 
-En Windows, `VERIFICAR-ANTES-DEL-PUSH.cmd` ejecuta la compilacion definitiva, comprueba MVC/Swagger y la coleccion Postman mediante HTTP real, y consulta el estado de GitHub. Requiere Java, Git, Node.js 20 o posterior e internet. No hace push. Si todo pasa, guarda `target/validacion-final.json` y muestra `VALIDACION COMPLETA`.
+   Esperar el mensaje `BUILD SUCCESS`. En **Git Bash, Linux o macOS**, usar `sh mvnw clean verify`.
 
-| Acceso local | URL |
-|---|---|
-| MVC | http://localhost:8080/login |
-| Swagger UI | http://localhost:8080/swagger-ui/index.html |
-| OpenAPI JSON | http://localhost:8080/v3/api-docs |
-| Login REST | POST http://localhost:8080/api/auth/login |
+3. Iniciar la aplicación con el WAR generado:
 
-Perfil predeterminado: `demo`, con H2 en memoria. Los cambios se pierden al detener la aplicacion.
+   ```shell
+   java -jar target/finanzas-personales-1.0.0.war
+   ```
 
-| Cuenta demo | Password | Rol |
+4. Mantener esa terminal abierta y entrar a [http://localhost:8080/login](http://localhost:8080/login).
+
+La base H2 y los datos demo se cargan automáticamente; no hay que instalar una base de datos. Detener con `Ctrl+C` antes de volver a compilar. Al reiniciar se restauran los datos demo y se pierden los cambios realizados.
+
+## Credenciales y funciones por rol
+
+Las cuentas demo sirven para la web y para el login de la API:
+
+| Rol | Correo | Contraseña |
 |---|---|---|
-| admin@u.icesi.edu.co | Demo2026! | ADMINISTRADOR |
-| estudiante@u.icesi.edu.co | Demo2026! | USUARIO |
+| Administrador | admin@u.icesi.edu.co | Demo2026! |
+| Usuario | estudiante@u.icesi.edu.co | Demo2026! |
 
-El WAR anterior en `artifacts/` pertenece al taller MVC. Para este taller se utiliza el WAR reconstruido en `target/`.
+- **Administrador:** gestiona usuarios, roles, permisos y sus asignaciones desde la web o la API. También administra los catálogos y los registros financieros de los usuarios mediante la API.
+- **Usuario:** accede a la web sin los módulos administrativos. Mediante la API consulta su perfil, cambia su contraseña y gestiona sus cuentas, movimientos, categorías personales, presupuestos, deudas, abonos y planes de ahorro. El acceso a planes compartidos depende de su participación y de si es propietario.
 
-## Autenticacion
+## Probar la interfaz web
 
-Enviar `POST /api/auth/login` con JSON:
+1. Entrar como **administrador** y abrir **Usuarios → Crear usuario**. Completar los datos, asignar un rol y guardar; comprobar que aparezca en el listado.
+2. Abrir **Editar**, cambiar un dato y guardar. Desde **Roles**, crear un rol y asignarle permisos.
+3. Cerrar sesión con el botón **Salir** e ingresar como **usuario**. Al intentar abrir [http://localhost:8080/usuarios](http://localhost:8080/usuarios), debe mostrarse acceso denegado.
 
-```json
-{"correo":"estudiante@u.icesi.edu.co","password":"Demo2026!"}
-```
+## Probar la API con Swagger
 
-La respuesta contiene `accessToken`, `tokenType`, `issuedAt`, `expiresAt`, `correo` y `roles`. En las siguientes solicitudes: `Authorization: Bearer <accessToken>`. En Swagger, pegar solo el token en **Authorize**.
+Con la aplicación iniciada, abrir [Swagger UI](http://localhost:8080/swagger-ui/index.html). La sesión de la web y la autenticación JWT de la API son independientes.
 
-El JWT contiene `sub`, `iss`, `iat`, `nbf`, `exp`, roles y autoridades; se firma con HS256 y dura 3600 segundos por defecto. Cada solicitud vuelve a consultar el usuario y sus autoridades: desactivar la cuenta invalida su acceso y revocar un permiso se aplica inmediatamente. Cambiar la contrasena no revoca automaticamente los JWT existentes; vencen al expirar. La API no crea sesiones ni admite HTTP Basic. Una sesion MVC no autentica la API y un JWT no inicia sesion en MVC.
+1. Desplegar `POST /api/auth/login`, pulsar **Try it out** y reemplazar el cuerpo por:
 
-Registro publico: `POST /api/auth/registro`. La ruta anterior `/api/registro` sigue disponible. Solo se asigna USUARIO; el JSON no admite roles ni passwordHash. Perfil y cambio de contrasena: `GET /api/me` y `PUT /api/me/password`.
+   ```json
+   {
+     "correo": "estudiante@u.icesi.edu.co",
+     "password": "Demo2026!"
+   }
+   ```
 
-## Documentacion Swagger
+2. Pulsar **Execute**. Debe responder `200` con un `accessToken`.
+3. Copiar solo el valor de `accessToken`, sin comillas. Pulsar **Authorize**, pegarlo sin escribir `Bearer`, confirmar y cerrar el cuadro.
+4. Ejecutar cada operación con **Try it out → Execute**:
 
-Swagger incluye las 99 operaciones de los 20 controladores REST. Cada metodo documenta su respuesta de exito (200, 201 o 204), el esquema JSON correspondiente y los errores en formato `application/problem+json` con `ProblemDetail`. Las respuestas 204 no incluyen cuerpo. Los DTOs y sus restricciones de validacion describen los cuerpos de entrada.
+   | Operación | Resultado esperado con el usuario demo |
+   |---|---|
+   | `GET /api/me` | `200`: perfil del estudiante. |
+   | `GET /api/cuentas` | `200`: sus cuentas financieras. |
+   | `GET /api/admin/usuarios` | `403`: operación reservada al administrador. |
 
-Para probar la API, ejecutar primero `POST /api/auth/login`, copiar `accessToken` y pegarlo en **Authorize**. El login y ambas rutas de registro son publicos; las demas operaciones requieren JWT. La prueba `swaggerDocumentaCadaMetodoConSuRespuestaReal` compara todos los metodos REST registrados con el OpenAPI generado y guarda `target/openapi-validado.json`.
+5. Repetir el login con las credenciales del administrador. En **Authorize**, pulsar **Logout** y autorizar el nuevo token. `GET /api/admin/usuarios` debe responder `200`.
+6. Pulsar **Authorize → Logout** y repetir `GET /api/me`: debe responder `401` sin token.
 
-## Recursos
+Para probar un CRUD, ejecutar `POST /api/cuentas` con los campos que muestra Swagger. Copiar el `id` devuelto y usarlo en `GET`, `PUT` y `DELETE /api/cuentas/{id}`. Deben responder `201`, `200`, `200` y `204`, respectivamente.
 
-Todas las filas incluyen GET listado, GET por clave, POST, PUT por clave y DELETE por clave. POST devuelve 201, PUT/GET 200 y DELETE 204. Las creaciones principales incluyen Location. Swagger documenta los cuerpos y tipos de todos los metodos.
+## Probar toda la API con Postman
 
-| Recurso | Ruta | Clave |
-|---|---|---|
-| Usuario | /api/admin/usuarios | id |
-| Rol | /api/admin/roles | id |
-| Permiso | /api/admin/permisos | id |
-| UsuarioRol | /api/admin/usuarios-roles | usuarioId/rolId |
-| RolPermiso | /api/admin/roles-permisos | rolId/permisoId |
-| Moneda | /api/monedas | id |
-| TipoCuenta | /api/tipos-cuenta | id |
-| Categoria | /api/categorias | id |
-| Cuenta | /api/cuentas | id |
-| Movimiento | /api/movimientos | id |
-| MovimientoRecurrente | /api/movimientos-recurrentes | id |
-| Presupuesto | /api/presupuestos | id |
-| Deuda | /api/deudas | id |
-| AbonoDeuda | /api/abonos-deuda | id |
-| PlanAhorro | /api/planes-ahorro | id |
-| InvitacionPlan | /api/invitaciones-plan | id |
-| AportePlan | /api/aportes-plan | id |
-| ParticipacionPlan | /api/participaciones-plan | planId/usuarioId |
+Usar la aplicación recién iniciada con los datos demo:
 
-Ejemplo de clave compuesta: `/api/participaciones-plan/1/2`. En PUT, las claves del JSON deben coincidir con la ruta. Los identificadores simples y fechas de creacion son generados por el servidor.
+1. En Postman, pulsar **Import** y seleccionar:
 
-## Autorizacion y reglas
+   - `postman/Finanzas.postman_collection.json`
+   - `postman/Local.postman_environment.json`
+2. Seleccionar el entorno **Finanzas local demo**. Verificar que `baseUrl` sea `http://localhost:8080`; las credenciales ya están configuradas.
+3. Abrir la colección, pulsar **Run collection** y ejecutar todas las solicitudes en su orden original, con **1 iteración**.
+4. Comprobar que todas las pruebas pasen. La colección obtiene tokens e identificadores automáticamente y prueba CRUD, permisos y errores. Algunas respuestas `4xx` son intencionales y deben pasar su validación.
 
-- ADMINISTRADOR gestiona usuarios, roles, permisos y catalogos. Se conserva el ultimo administrador activo, al menos un rol por usuario y un permiso por rol.
-- La operacion financiera requiere ADMINISTRADOR o GESTIONAR_FINANZAS. Los usuarios consultan y modifican sus datos. Un identificador ajeno responde 404 y una escritura no autorizada 403.
-- Monedas, tipos de cuenta y categorias globales son consultables; solo el administrador modifica los catalogos globales.
-- Los movimientos ajustan el saldo de la cuenta al crearse, editarse o eliminarse, dentro de una transaccion con bloqueo. Una categoria debe corresponder al tipo de movimiento y ser global o del mismo usuario.
-- El saldo pendiente de una deuda se calcula a partir de su monto y abonos. No se acepta un abono mayor al saldo. Al saldarse cambia el estado a SALDADA; eliminar un abono revierte el saldo.
-- Solo el propietario administra un plan y sus participantes. El invitado acepta o rechaza su invitacion; aceptar crea su participacion. No se invita a planes individuales ni se cambia el destinatario al responder.
-- Un aporte requiere pertenecer al plan y usar una cuenta propia. Los aportes representan ahorro reservado; no generan otro movimiento ni descuentan dos veces el saldo. Las recurrencias se almacenan como programaciones; este taller no ejecuta un planificador automatico.
-- Las relaciones existentes impiden eliminaciones destructivas y devuelven 409. Las entradas invalidas responden 400; credenciales o tokens invalidos, 401. Los errores REST tienen formato ProblemDetail y no incluyen trazas ni SQL.
+También se puede ejecutar la colección por HTTP desde una **segunda terminal**, con **Node.js 20 o posterior** y la aplicación encendida:
 
-## Pruebas
-
-`clean verify` ejecuta pruebas de servicios, MVC y REST, ademas del control JaCoCo existente para los servicios del taller anterior. Las pruebas nuevas cubren las 18 entidades, JWT, permisos, datos ajenos, saldos, asociaciones y Swagger. Los resultados actuales se generan en `target/surefire-reports/` y `target/site/jacoco/`.
-
-En Postman:
-
-1. Importar `postman/Finanzas.postman_collection.json` y `postman/Local.postman_environment.json`.
-2. Seleccionar **Finanzas local demo** y ajustar `baseUrl` si cambia el puerto o el contexto Tomcat.
-3. Abrir **Runner**, seleccionar toda la coleccion y ejecutar en orden.
-
-La coleccion obtiene tokens e identificadores, prueba los CRUD y errores, y elimina los datos creados. Sus cuentas demo no deben usarse en produccion. Si una ejecucion se interrumpe, reiniciar el perfil demo antes de repetirla. No cambiar el orden.
-
-Tambien puede ejecutarse la misma secuencia y sus scripts con Node.js 20 o posterior, sin instalar paquetes:
-
-```bash
+```shell
 node scripts/verificar-api.mjs
 ```
 
-Para otro puerto: `node scripts/verificar-api.mjs postman/Local.postman_environment.json http://localhost:18084`. El reporte sin tokens se guarda en `target/postman-report.json`. Este ejecutor soporta los scripts de esta coleccion; no pretende reemplazar todas las funciones de Postman.
+Resultado esperado: `OK: 146 solicitudes, 153 verificaciones.` Informe: `target/postman-report.json`. Si falla o se interrumpe, reiniciar la aplicación antes de repetirla.
 
-Si Node.js esta disponible, Maven tambien ejecuta la coleccion y sus scripts mediante MockMvc, sin abrir puertos. Sin Node se omite esa prueba; ejecutar entonces la coleccion desde Postman. Esto complementa la comprobacion HTTP local. El despliegue no forma parte del alcance actual.
+## Pruebas automáticas del proyecto
 
-## Estructura
+Ejecutar desde la carpeta del proyecto; estas pruebas usan su propia base de datos y no requieren iniciar la aplicación:
 
-`controller/` conserva MVC; `api/` contiene REST; `api/dto/` y `api/mapper/` separan los contratos y sus conversiones MapStruct. `api/service/` contiene transacciones, propiedad de recursos y reglas financieras. `service/impl/` conserva la administracion existente compartida con MVC. `security/` contiene UserDetailsService, JwtService, SecurityFilter y las dos SecurityFilterChain ordenadas.
+| Qué probar | Comando en PowerShell o CMD |
+|---|---|
+| Todas las pruebas | `.\mvnw.cmd test` |
+| CRUD REST, JWT y Swagger | `.\mvnw.cmd "-Dtest=RestIntegrationTest" test` |
+| Interfaz web y permisos | `.\mvnw.cmd "-Dtest=MvcIntegrationTest" test` |
 
-Se tomaron como referencia la separacion MVC/REST y las cadenas de seguridad de [262WebApp6](https://github.com/Domiciano/262WebApp6) y las notas REST/JWT/Postman de [Compunet2-252](https://github.com/Domiciano/Compunet2-252). Se consultaron las copias locales disponibles; no se pudo actualizar GitHub durante esta preparacion.
+En Git Bash, Linux o macOS, reemplazar `.\mvnw.cmd` por `sh mvnw`. Los informes quedan en `target/surefire-reports/`.
 
-Guia de demostracion y validacion: [docs/ENTREGA_BACKEND.md](docs/ENTREGA_BACKEND.md).
+Con Node.js, la suite completa también ejecuta la colección mediante MockMvc. Sin Node.js, esa prueba se omite: ejecutar la colección en Postman. `clean verify` ejecuta toda la suite, comprueba la cobertura configurada y genera el WAR.
