@@ -25,6 +25,16 @@ Requisitos: **JDK 17 o 21**, con `java` disponible en la terminal, e internet pa
 
 La base H2 y los datos demo se cargan automáticamente; no hay que instalar una base de datos. Detener con `Ctrl+C` antes de volver a compilar. Al reiniciar se restauran los datos demo y se pierden los cambios realizados.
 
+## Ubicación en el computador de la universidad
+
+El WAR quedó en el equipo **104M10**, en la carpeta `/home/computacion2/Documents/compu2 - miga`. Se ejecuta directamente con su servidor integrado:
+
+```shell
+java -jar "/home/computacion2/Documents/compu2 - miga/finanzas-personales-1.0.0.war"
+```
+
+En ese computador, abrir [http://localhost:8080/login](http://localhost:8080/login) y mantener la terminal abierta mientras se usa la aplicación.
+
 ## Credenciales y funciones por rol
 
 Las cuentas demo sirven para la web y para el login de la API:
