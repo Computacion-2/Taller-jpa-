@@ -1,0 +1,72 @@
+/*
+ * Paleta y escalas del sistema visual de "Finanzas personales".
+ * Verde azulado (confianza, dinero) como primario y ambar como acento.
+ */
+:root {
+  /* Marca */
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
+  --color-primary-active: #134e4a;
+  --color-primary-soft: #ccfbf1;
+  --color-primary-softer: #f0fdfa;
+  --color-accent: #f59e0b;
+  --color-accent-soft: #fef3c7;
+
+  /* Estados */
+  --color-success: #15803d;
+  --color-success-soft: #dcfce7;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fee2e2;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-info: #2563eb;
+  --color-info-soft: #dbeafe;
+
+  /* Neutros */
+  --color-bg: #f3f6f8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-text-soft: #94a3b8;
+
+  /* Barra lateral */
+  --sidebar-bg: #0b2a33;
+  --sidebar-text: #b6d4d2;
+  --sidebar-active: #134e4a;
+  --sidebar-width: 260px;
+
+  /* Tipografia */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
+
+  /* Espaciado (multiplos de 4 px) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Bordes, sombras y animaciones */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 14px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 18px 40px rgb(15 23 42 / 0.18);
+  --focus-ring: 0 0 0 3px rgb(15 118 110 / 0.35);
+  --transition: 150ms ease;
+}
