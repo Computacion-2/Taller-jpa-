@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -55,6 +56,7 @@ public class WebSecurityConfig {
                 HttpStatus.UNAUTHORIZED, "Se requiere un token Bearer"));
         };
         return http.securityMatcher("/api/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+            .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .requestCache(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
@@ -63,6 +65,8 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registro", "/api/registro").permitAll()
+                // El formulario de registro de la SPA necesita el catalogo de monedas antes de iniciar sesion.
+                .requestMatchers(HttpMethod.GET, "/api/monedas").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/me", "/api/me/**").authenticated()
                 .anyRequest().hasAnyAuthority("ROLE_ADMINISTRADOR", "GESTIONAR_FINANZAS"))

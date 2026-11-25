@@ -195,7 +195,9 @@ class MvcIntegrationTest {
         String token = objectMapper.readTree(login.getResponse().getContentAsString())
             .path("accessToken").asText();
 
-        mvc.perform(get("/api/monedas")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/cuentas")).andExpect(status().isUnauthorized());
+        // El catalogo de monedas se lee sin token: lo necesita el formulario de registro de la SPA.
+        mvc.perform(get("/api/monedas")).andExpect(status().isOk());
         mvc.perform(get("/api/monedas").header("Authorization", "Bearer " + token))
             .andExpect(status().isOk()).andExpect(jsonPath("$").isArray());
         mvc.perform(get("/api/admin/usuarios").header("Authorization", "Bearer " + token))

@@ -295,4 +295,25 @@ class RestIntegrationTest {
         link.put("rolId",2);
         send(body(put("/api/admin/usuarios-roles/2/1"),link).header("Authorization","Bearer "+token),400);
     }
+
+    @Test void corsPermiteLaSpaYRechazaOrigenesDesconocidos() throws Exception {
+        mvc.perform(options("/api/cuentas").header("Origin", "http://localhost:5173")
+                .header("Access-Control-Request-Method", "POST")
+                .header("Access-Control-Request-Headers", "authorization,content-type"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
+            .andExpect(header().string("Access-Control-Allow-Methods", containsString("POST")));
+        mvc.perform(get("/api/me").header("Origin", "http://localhost:5173")
+                .header("Authorization", "Bearer " + student()))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
+        mvc.perform(options("/api/cuentas").header("Origin", "http://malicioso.example")
+                .header("Access-Control-Request-Method", "GET"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test void catalogoDeMonedasEsPublicoSoloParaLectura() throws Exception {
+        assertTrue(send(get("/api/monedas"),200).size() >= 2);
+        send(body(post("/api/monedas"), sample("monedas")),401);
+    }
 }
